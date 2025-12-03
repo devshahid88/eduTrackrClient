@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                          // changed for padStart, optional chaining, etc.
+    "module": "ESNext",
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "lib": ["DOM", "ES2020"],                    // add this to fix padStart and other modern features
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "outDir": "dist"                               // ensure you're not using 'any' without typing
+  },
+  "include": ["src"]
+}
