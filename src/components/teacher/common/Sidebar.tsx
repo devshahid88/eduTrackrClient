@@ -18,6 +18,7 @@ import {
   MdExitToApp,
   MdSmartToy,
   MdNotifications,
+  MdLibraryBooks,
 } from 'react-icons/md';
 import { RootState } from '../../../redux/store';
 
@@ -53,6 +54,7 @@ const TeacherSideBar: React.FC<TeacherSideBarProps> = ({ activePage, onClose }) 
       { icon: MdPeople, label: 'Students', path: '/teacher/students' },
       { icon: MdAssignment, label: 'Assignments', path: '/teacher/assignments' },
       { icon: MdGrade, label: 'Grades', path: '/teacher/grades' },
+      { icon: MdLibraryBooks, label: 'Resources', path: '/teacher/resources' },
       { icon: MdNotifications, label: 'Notifications', path: '/teacher/notifications', badge: unreadCount },
     ],
     COMMUNICATION: [

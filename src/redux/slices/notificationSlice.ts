@@ -22,7 +22,7 @@ export const fetchNotifications = createAsyncThunk(
       const state = getState() as RootState;
       const { user, isAuthenticated } = state.auth;
 
-      if (!isAuthenticated || !user || !user.id || !user.role) {
+      if (!isAuthenticated || !user || (!user.id && !user._id) || !user.role) {
         throw new Error('User is not authenticated or user data is incomplete');
       }
 

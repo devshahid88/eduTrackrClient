@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import Sidebar from '../../components/admin/Commen/Sidebar';
-import Header from '../../components/admin/Commen/Header';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-import { MdEdit, MdSave, MdCancel, MdCameraAlt, MdPerson, MdEmail, MdAdminPanelSettings,MdMenu } from 'react-icons/md';
+import { MdEdit, MdSave, MdCancel, MdCameraAlt, MdPerson, MdEmail, MdAdminPanelSettings } from 'react-icons/md';
 
 // Interface definitions
 interface Admin {
@@ -38,22 +36,12 @@ interface ApiResponse<T> {
   message?: string;
 }
 
-interface SidebarProps {
-  activePage: string;
-  onClose?: () => void;
-}
-
-interface HeaderProps {
-  onToggleSidebar: () => void;
-  isSidebarOpen: boolean;
-}
-
 const AdminProfile: React.FC = () => {
   const navigate = useNavigate();
   const { user: admin } = useSelector((state: RootState) => state.auth);
+
   const [loading, setLoading] = useState<boolean>(true);
   const [updating, setUpdating] = useState<boolean>(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editData, setEditData] = useState<EditData>({
     username: '',
@@ -199,152 +187,115 @@ const AdminProfile: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <>
       <Toaster position="top-right" />
-      {/* Overlay for mobile sidebar */}
-      <div
-        className={`fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden transition-opacity ${
-          isSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={() => setIsSidebarOpen(false)}
-      />
-      {/* Sidebar */}
-      <div
-        className={`fixed left-0 top-0 bottom-0 z-40 bg-white w-64 transform ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition-transform duration-300 ease-in-out shadow-xl`}
-      >
-        <Sidebar activePage="profile" onClose={() => setIsSidebarOpen(false)} />
-      </div>
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden ml-0 md:ml-64">
-        {/* Mobile Header */}
-        <div className="flex items-center justify-between bg-white shadow-sm p-4 md:hidden border-b">
-          <button
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <MdMenu size={24} className="text-gray-700" />
-          </button>
-          <h1 className="text-lg font-semibold text-gray-800">Admin Profile</h1>
-          <div className="w-8"></div>
-        </div>
-        {/* Desktop Header */}
-        <div className="hidden md:block">
-          <Header
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            isSidebarOpen={isSidebarOpen}
-          />
-        </div>
-        {/* Profile Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-32 md:h-40 relative">
-                <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-                  <div className="relative">
-                    <img
-                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
-                      src={editData.profileImage || fallbackAvatar}
-                      alt="Admin Profile"
-                      onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = fallbackAvatar;
-                      }}
-                    />
-                    {isEditing && (
-                      <label className="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
-                        <MdCameraAlt size={16} />
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="pt-20 pb-6 px-6 text-center">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-                  {editData.firstname} {editData.lastname}
-                </h1>
-                <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mb-4">
-                  <MdAdminPanelSettings className="mr-1" />
-                  {admin.role}
-                </div>
-                <div className="flex justify-center space-x-3">
-                  {isEditing ? (
-                    <>
-                      <button
-                        onClick={handleUpdate}
-                        disabled={updating}
-                        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
-                      >
-                        <MdSave size={18} />
-                        <span>{updating ? 'Saving...' : 'Save Changes'}</span>
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        disabled={updating}
-                        className="flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
-                      >
-                        <MdCancel size={18} />
-                        <span>Cancel</span>
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setIsEditing(true)}
-                      className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
-                    >
-                      <MdEdit size={18} />
-                      <span>Edit Profile</span>
-                    </button>
+      <div className="p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-32 md:h-40 relative">
+              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
+                <div className="relative">
+                  <img
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                    src={editData.profileImage || fallbackAvatar}
+                    alt="Admin Profile"
+                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = fallbackAvatar;
+                    }}
+                  />
+                  {isEditing && (
+                    <label className="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
+                      <MdCameraAlt size={16} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                      />
+                    </label>
                   )}
                 </div>
               </div>
             </div>
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <MdPerson className="mr-2 text-blue-600" />
-                Admin Information
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {(['username', 'firstname', 'lastname', 'email'] as (keyof EditData)[]).map((field) => (
-                  <div key={field}>
-                    <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center">
-                      {field === 'email' ? <MdEmail className="mr-1" /> : <MdPerson className="mr-1" />}
-                      {field === 'firstname'
-                        ? 'First Name'
-                        : field === 'lastname'
-                        ? 'Last Name'
-                        : field === 'email'
-                        ? 'Email Address'
-                        : 'Username'}
-                    </label>
-                    {isEditing ? (
-                      <input
-                        type={field === 'email' ? 'email' : 'text'}
-                        value={editData[field]}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setEditData((prev) => ({ ...prev, [field]: e.target.value }))
-                        }
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-                        placeholder={`Enter ${field}`}
-                      />
-                    ) : (
-                      <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{editData[field]}</p>
-                    )}
-                  </div>
-                ))}
+            <div className="pt-20 pb-6 px-6 text-center">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+                {editData.firstname} {editData.lastname}
+              </h1>
+              <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mb-4">
+                <MdAdminPanelSettings className="mr-1" />
+                {admin.role}
               </div>
+              <div className="flex justify-center space-x-3">
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleUpdate}
+                      disabled={updating}
+                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
+                    >
+                      <MdSave size={18} />
+                      <span>{updating ? 'Saving...' : 'Save Changes'}</span>
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      disabled={updating}
+                      className="flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
+                    >
+                      <MdCancel size={18} />
+                      <span>Cancel</span>
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+                  >
+                    <MdEdit size={18} />
+                    <span>Edit Profile</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+              <MdPerson className="mr-2 text-blue-600" />
+              Admin Information
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {(['username', 'firstname', 'lastname', 'email'] as (keyof EditData)[]).map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center">
+                    {field === 'email' ? <MdEmail className="mr-1" /> : <MdPerson className="mr-1" />}
+                    {field === 'firstname'
+                      ? 'First Name'
+                      : field === 'lastname'
+                      ? 'Last Name'
+                      : field === 'email'
+                      ? 'Email Address'
+                      : 'Username'}
+                  </label>
+                  {isEditing ? (
+                    <input
+                      type={field === 'email' ? 'email' : 'text'}
+                      value={editData[field]}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setEditData((prev) => ({ ...prev, [field]: e.target.value }))
+                      }
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
+                      placeholder={`Enter ${field}`}
+                    />
+                  ) : (
+                    <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{editData[field]}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

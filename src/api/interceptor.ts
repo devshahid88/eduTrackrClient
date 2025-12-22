@@ -36,16 +36,23 @@ export const setupInterceptor = (axiosInstance: AxiosInstance): void => {
   axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
       // Try to get token from Redux first, then localStorage
-      let token = store.getState().auth.accessToken;
+      const state = store.getState();
+      let token = state.auth.accessToken;
+      
       if (!token) {
         token = localStorage.getItem('accessToken');
       }
       
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        // Use standard header assignment
+        config.headers.Authorization = `Bearer ${token.trim()}`;
+        console.log(`[Axios Interceptor] Added token to ${config.url}`);
+      } else {
+        console.warn(`[Axios Interceptor] No token found for ${config.url}`);
       }
       return config;
     },
+
     (error: AxiosError) => {
       console.error("Axios request interceptor error", error);
       return Promise.reject(error);

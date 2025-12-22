@@ -12,7 +12,9 @@ import {
   MdClass,
   MdAnnouncement,
   MdLogout,
-  MdPerson 
+  MdPerson,
+  MdLibraryBooks,
+  MdCampaign
 } from 'react-icons/md';
 
 interface AdminSideBarProps {
@@ -54,6 +56,8 @@ const AdminSideBar: React.FC<AdminSideBarProps> = ({ activePage, onClose }) => {
       items: [
         { name: 'Concerns', icon: <MdAnnouncement className="w-5 h-5" />, path: '/admin/concerns' },
         { name: 'Schedule', icon: <MdGrade className="w-5 h-5" />, path: '/admin/schedule' },
+        { name: 'Resources', icon: <MdLibraryBooks className="w-5 h-5" />, path: '/admin/resources' },
+        { name: 'Announcements', icon: <MdCampaign className="w-5 h-5" />, path: '/admin/announcements' },
       ],
     },
     {

@@ -6,8 +6,8 @@ import toast from 'react-hot-toast';
 import { RootState } from '../../../redux/store';
 import axiosInstance from '../../../api/axiosInstance';
 import * as chatApi from '../../../api/chat';
-import { ChatSidebar } from '../../common/chat/ChatSidebar';
-import { ChatWindow } from '../../common/chat/ChatWindow';
+import { ChatSidebar } from './ChatSidebar';
+import { ChatWindow } from './ChatWindow';
 import { ChatListItem, ChatMessage } from '../../../types/features/chat';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3003';
@@ -322,14 +322,13 @@ const ChatStudent: React.FC = () => {
         }}
         loading={loading}
         error={error || undefined}
-        directory={teachers}
+        teachers={teachers}
         initiateChat={initiateChat}
-        onSwitch={switchToTeacher}
+        switchToTeacher={switchToTeacher}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         socketConnected={socketConnected}
-        currentDeptId={departmentId || ''}
-        userRole="Student"
+        currentStudentDeptId={departmentId || ''}
       />
       
       <main className="flex-1 flex flex-col relative bg-gray-50/30">
@@ -349,9 +348,8 @@ const ChatStudent: React.FC = () => {
           onTyping={handleTyping}
           onDelete={handleDeleteMessage}
           onReact={handleAddReaction}
-          activeContact={activeTeacher || undefined}
+          activeTeacher={activeTeacher || undefined}
           currentUserId={userId}
-          userRole="Student"
         />
       </main>
 

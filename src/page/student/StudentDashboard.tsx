@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import Sidebar from '../../components/student/Common/Sidebar';
-import Header from '../../components/student/Common/Header';
 import StatsCard from '../../components/student/Dashboard/StatsCard';
 import UpcomingAssignments from '../../components/student/Dashboard/UpcomingAssignments';
 import TodaySchedule from '../../components/student/Dashboard/TodaySchedule';
 import AssignmentDetailModal from '../../components/student/assignments/AssignmentDetailModal';
-import { MdSchool, MdAssignment, MdTrendingUp, MdMenu } from 'react-icons/md';
+import { MdSchool, MdAssignment, MdTrendingUp } from 'react-icons/md';
 import axios from '../../api/axiosInstance';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [stats, setStats] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
@@ -107,81 +104,51 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div
-        className={`fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden ${
-          isSidebarOpen ? 'block' : 'hidden'
-        }`}
-        onClick={() => setIsSidebarOpen(false)}
-      />
-
-      <div
-        className={`fixed left-0 top-0 bottom-0 z-40 bg-white w-64 transform ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition-transform ease-in-out duration-300`}
-      >
-        <Sidebar />
-      </div>
-
-      <div className="flex-1 flex flex-col overflow-hidden ml-0 md:ml-64">
-        <div className="flex items-center justify-between bg-white shadow-md p-4 md:hidden">
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-            <MdMenu size={30} />
-          </button>
-          <Header  />
+    <>
+      <div className="container mx-auto px-4 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {isLoading
+            ? Array(3)
+                .fill(0)
+                .map((_, i) => (
+                  <div key={i} className="bg-white p-6 rounded-lg shadow-md animate-pulse h-32"></div>
+                ))
+            : stats.map((stat, index) => <StatsCard key={index} {...stat} />)}
         </div>
 
-        <div className="hidden md:block">
-          <Header  />
-        </div>
-
-        <div className="flex-1 overflow-y-auto no-scrollbar p-8">
-          <div className="container mx-auto px-4 py-8">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {isLoading
-                ? Array(3)
-                    .fill(0)
-                    .map((_, i) => (
-                      <div key={i} className="bg-white p-6 rounded-lg shadow-md animate-pulse h-32"></div>
-                    ))
-                : stats.map((stat, index) => <StatsCard key={index} {...stat} />)}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Upcoming Assignments */}
+          <div className="lg:col-span-2">
+            {/* <UpcomingAssignments
+              studentId={studentId}
+              accessToken={accessToken}
+              onView={handleViewAssignment}
+              onStart={handleStartSubmission}
+            /> */}
+            <UpcomingAssignments
+              onView={handleViewAssignment}
+            />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Upcoming Assignments */}
-              <div className="lg:col-span-2">
-                {/* <UpcomingAssignments
-                  studentId={studentId}
-                  accessToken={accessToken}
-                  onView={handleViewAssignment}
-                  onStart={handleStartSubmission}
-                /> */}
-                <UpcomingAssignments
-                  onView={handleViewAssignment}
-                />
+          {/* Today's Schedule */}
+          <div>
+            {/* <TodaySchedule studentId={studentId} accessToken={accessToken} /> */}
+            <TodaySchedule  />
                 </div>
+              </div>
 
-              {/* Today's Schedule */}
-              <div>
-                {/* <TodaySchedule studentId={studentId} accessToken={accessToken} /> */}
-                <TodaySchedule  />
-                    </div>
-                  </div>
-
-            {/* Assignment Detail Modal */}
-            {selectedAssignment && (
-              <AssignmentDetailModal
-                isOpen={isDetailModalOpen}
-                onClose={() => setIsDetailModalOpen(false)}
-                assignment={selectedAssignment}
-                onStartSubmission={handleStartSubmission}
-              />
-            )}
-          </div>
-        </div>
+        {/* Assignment Detail Modal */}
+        {selectedAssignment && (
+          <AssignmentDetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            assignment={selectedAssignment}
+            onStartSubmission={handleStartSubmission}
+          />
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

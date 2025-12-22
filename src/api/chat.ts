@@ -2,7 +2,8 @@ import axiosInstance from './axiosInstance';
 import { ChatListItem, ChatMessage } from '../types/features/chat';
 
 export const fetchTeachersByDept = (deptId: string) =>
-  axiosInstance.get(`/teachers?department=${deptId}`);
+  axiosInstance.get(`/api/teachers?department=${deptId}`);
+
 
 export const fetchChatList = (userId: string) =>
   axiosInstance.get<ChatListItem[]>(`/api/messages/chatlist`, { params: { userId } });

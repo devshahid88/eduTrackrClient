@@ -118,7 +118,7 @@ const AiStudent: React.FC = () => {
         timestamp: new Date().toISOString()
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/ai/chat`, {
+      const response = await fetch(`${API_BASE_URL}/api/ai/student/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

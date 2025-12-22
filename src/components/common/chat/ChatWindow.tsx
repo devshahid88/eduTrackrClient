@@ -17,8 +17,9 @@ interface ChatWindowProps {
   onTyping: () => void;
   onDelete: (messageId: string) => void;
   onReact:  (msgId: string, emoji: string) => void;
-  activeTeacher?: { id: string; name: string };
+  activeContact?: { id: string; name: string };
   currentUserId: string;
+  userRole: 'Student' | 'Teacher';
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
@@ -34,8 +35,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onTyping,
   onDelete, 
   onReact,
-  activeTeacher,
-  currentUserId
+  activeContact,
+  currentUserId,
+  userRole
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +47,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
     }
   }, [messages, isTyping]);
 
-  if (!activeTeacher) {
+  if (!activeContact) {
+    const welcomeTitle = userRole === 'Student' ? 'Welcome to your Education Hub' : 'Welcome to Teacher Dashboard';
+    const welcomeDesc = userRole === 'Student' 
+      ? 'Select a mentor from the sidebar to start a real-time learning conversation.'
+      : 'Select a student from the sidebar to provide guidance and answer questions.';
+
     return (
       <div className="flex-1 flex flex-col items-center justify-center bg-gray-50/50">
         <div className="relative mb-8">
@@ -54,9 +61,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 <span className="text-4xl">👋</span>
             </div>
         </div>
-        <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">Welcome to your Education Hub</h2>
+        <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">{welcomeTitle}</h2>
         <p className="text-gray-500 font-medium max-w-xs text-center leading-relaxed">
-            Select a mentor from the sidebar to start a real-time learning conversation.
+            {welcomeDesc}
         </p>
       </div>
     );
@@ -69,12 +76,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         <div className="flex items-center gap-4">
           <div className="relative">
              <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-600 border border-blue-200">
-                {activeTeacher.name[0].toUpperCase()}
+                {activeContact.name[0].toUpperCase()}
              </div>
              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white bg-green-500 shadow-sm" />
           </div>
           <div>
-            <h3 className="font-black text-gray-900 leading-tight tracking-tight">{activeTeacher.name}</h3>
+            <h3 className="font-black text-gray-900 leading-tight tracking-tight">{activeContact.name}</h3>
             <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest bg-blue-50 px-1.5 py-0.5 rounded-md">Online Now</span>
             </div>
@@ -127,7 +134,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                     <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                   </div>
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{activeTeacher.name.split(' ')[0]} is typing...</span>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{activeContact.name.split(' ')[0]} is typing...</span>
                 </div>
               </div>
             )}
@@ -152,3 +159,4 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 };
 
 export default ChatWindow;
+

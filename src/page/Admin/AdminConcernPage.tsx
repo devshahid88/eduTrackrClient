@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import Header from '../../components/common/Header';
-import AdminSideBar from '../../components/admin/Commen/Sidebar';
 import ConcernTable from '../../components/admin/concerns/ConcernTable';
 import AddConcernModal from '../../components/admin/concerns/AddConcernModal';
 import EditConcernModal from '../../components/admin/concerns/EditConcernModal';
@@ -55,7 +53,7 @@ const AdminConcernPage: React.FC = () => {
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedConcern, setSelectedConcern] = useState<Concern | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
+
 
   useEffect(() => {
     const fetchConcerns = async () => {
@@ -176,113 +174,96 @@ const AdminConcernPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
 
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-  };
 
   const isAdmin = authState?.user?.role === 'admin';
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-[#F5F7FB] to-white">
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:static lg:transform-none ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        <AdminSideBar activePage="concerns" onClose={closeSidebar} />
-      </div>
-      <div className="flex-1 flex flex-col">
-        {/* <Header onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} role="admin" /> */}
-        <Header   role="admin" />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 ml-64">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">Manage Concerns</h1>
-              <p className="text-sm sm:text-base text-gray-500">View and manage all academic and administrative concerns</p>
+    <>
+      <div className="p-4 sm:p-6 lg:p-8 w-full max-w-[100vw] overflow-hidden">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">Manage Concerns</h1>
+            <p className="text-sm sm:text-base text-gray-500">View and manage all academic and administrative concerns</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center">
+              <label htmlFor="rowsPerPage" className="text-sm text-gray-600 mr-2">
+                Rows:
+              </label>
+              <select
+                id="rowsPerPage"
+                value={concernsPerPage}
+                onChange={handleRowsPerPageChange}
+                className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center">
-                <label htmlFor="rowsPerPage" className="text-sm text-gray-600 mr-2">
-                  Rows:
-                </label>
-                <select
-                  id="rowsPerPage"
-                  value={concernsPerPage}
-                  onChange={handleRowsPerPageChange}
-                  className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
+            {!isAdmin && (
+              <button
+                onClick={handleAdd}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
+              >
+                + Raise Concern
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search concerns by title, type, status, or raised by..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <>
+            <ConcernTable
+              concerns={currentConcerns}
+              onEdit={handleEdit}
+              onView={handleView}
+            />
+            {filteredConcerns.length > 0 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
               </div>
-              {!isAdmin && (
-                <button
-                  onClick={handleAdd}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-                >
-                  + Raise Concern
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Search concerns by title, type, status, or raised by..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
-          {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : (
-            <>
-              <ConcernTable
-                concerns={currentConcerns}
-                onEdit={handleEdit}
-                onView={handleView}
-              />
-              {filteredConcerns.length > 0 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              )}
-            </>
-          )}
-          {modalType === 'add' && (
-            <AddConcernModal isOpen={!!selectedConcern} onClose={handleCloseModal} onSubmit={handleSaveConcern} />
-          )}
-          {modalType === 'edit' && selectedConcern && (
-            <EditConcernModal
-              concern={selectedConcern}
-              onClose={handleCloseModal}
-              onSave={handleSaveConcern}
-            />
-          )}
-          {modalType === 'view' && selectedConcern && (
-            <ViewConcernModal concern={selectedConcern} onClose={handleCloseModal} />
-          )}
-        </main>
+            )}
+          </>
+        )}
+        {modalType === 'add' && (
+          <AddConcernModal isOpen={!!selectedConcern} onClose={handleCloseModal} onSubmit={handleSaveConcern} />
+        )}
+        {modalType === 'edit' && selectedConcern && (
+          <EditConcernModal
+            concern={selectedConcern}
+            onClose={handleCloseModal}
+            onSave={handleSaveConcern}
+          />
+        )}
+        {modalType === 'view' && selectedConcern && (
+          <ViewConcernModal concern={selectedConcern} onClose={handleCloseModal} />
+        )}
       </div>
-    </div>
+    </>
   );
 };
 

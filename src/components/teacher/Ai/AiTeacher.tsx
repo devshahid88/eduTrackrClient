@@ -68,7 +68,7 @@ const AiTeacher: React.FC = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Update with your actual API base URL
-  const API_BASE_URL = 'http://localhost:3000';
+  const API_BASE_URL = 'http://localhost:3003';
 
   const teacherActions: QuickAction[] = [
     { text: 'Create a lesson plan for elementary math', icon: BookOpen },

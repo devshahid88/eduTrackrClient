@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from '../../api/axiosInstance';
-import Sidebar from '../../components/admin/Commen/Sidebar';
-import Header from '../../components/admin/Commen/Header';
 import UserTable from '../../components/admin/users/UsersTable';
 import Filter from '../../components/admin/users/FilterSection';
 import Pagination from '../../components/admin/users/Pagination';
@@ -57,7 +55,6 @@ const AdminUserManagement: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [usersPerPage, setUsersPerPage] = useState<number>(10);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   const roleOptions: string[] = ['All', 'Admin', 'Teacher', 'Student'];
 
@@ -234,31 +231,6 @@ const fetchAllUsers = async (): Promise<void> => {
         rel="stylesheet"
       />
 
-     <div className="flex min-h-screen bg-gradient-to-b from-[#F5F7FB] to-white">
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-        {/* Sidebar */}
-        <div
-          className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:static lg:transform-none ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-          }`}
-        >
-          <Sidebar activePage="users" onClose={() => setIsSidebarOpen(false)} />
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          <Header
-            onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-            isSidebarOpen={isSidebarOpen}
-          />
-
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800 mb-2">User Management</h1>
             <p className="text-sm sm:text-base text-gray-500 mb-6">
               Manage platform users, search and filter by role.
@@ -360,8 +332,6 @@ const fetchAllUsers = async (): Promise<void> => {
                 )}
               </>
             )}
-          </main>
-        </div>
 
         {/* Modals */}
         {modalType === 'edit' && selectedUser && (
@@ -384,7 +354,7 @@ const fetchAllUsers = async (): Promise<void> => {
         {modalType === 'add' && (
           <AddUserModal onClose={handleCloseModal} onSave={handleSaveUser}  />
         )}
-      </div>
+
     </>
   );
 };

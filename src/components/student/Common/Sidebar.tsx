@@ -15,7 +15,8 @@ import {
   MdPerson,
   MdSettings,
   MdLogout,
-  MdNotifications 
+  MdNotifications,
+  MdCalendarToday 
 } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
@@ -52,6 +53,8 @@ const StudentSideBar: React.FC<StudentSideBarProps> = ({ activePage, onClose }) 
         { name: 'Dashboard', icon: <MdDashboard className="w-5 h-5" />, path: '/student/dashboard' },
         { name: 'My Courses', icon: <MdBook className="w-5 h-5" />, path: '/student/classPage' },
         { name: 'Assignments', icon: <MdAssignment className="w-5 h-5" />, path: '/student/assignments' },
+        { name: 'Resources', icon: <MdLibraryBooks className="w-5 h-5" />, path: '/student/resources' },
+        { name: 'Calendar', icon: <MdCalendarToday className="w-5 h-5" />, path: '/student/calendar' },
         // { name: 'Grades', icon: <MdGrade className="w-5 h-5" />, path: '/student/grades' },
         { name: 'Notifications', icon: <div className="relative"><MdNotifications className="w-5 h-5" />{unreadCount > 0 && <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">{unreadCount}</span>}</div>, path: '/student/notifications' },
       ],

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import axios from "../../api/axiosInstance";
-import Sidebar from "../../components/admin/Commen/Sidebar";
-import Header from "../../components/admin/Commen/Header";
 import DepartmentTable from "../../components/admin/departments/DepartmentTable";
 import AddDepartmentModal from "../../components/admin/departments/AddDepartmentModal";
 import EditDepartmentModal from "../../components/admin/departments/EditDepartmentModal";
@@ -22,16 +20,6 @@ interface ApiResponse<T> {
 type ModalType = 'add' | 'edit' | 'view' | 'delete' | null;
 
 // Interfaces for child component props
-interface SidebarProps {
-  activePage: string;
-  onClose?: () => void; // Optional to align with Dashboard.tsx and fix Sidebar error
-}
-
-interface HeaderProps {
-  onToggleSidebar: () => void;
-  isSidebarOpen: boolean;
-}
-
 interface DepartmentTableProps {
   departments: Department[];
   onEdit: (department: Department) => void;
@@ -76,7 +64,6 @@ const AdminDepartments: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [departmentsPerPage, setDepartmentsPerPage] = useState<number>(10);
-  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
 
   useEffect(() => {
     fetchDepartments();
@@ -189,132 +176,106 @@ const AdminDepartments: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-  const toggleSidebar = (): void => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-
-  const closeSidebar = (): void => {
-    setIsSidebarOpen(false);
-  };
-
   return (
-    <div className="flex min-h-screen bg-gradient-to-b from-[#F5F7FB] to-white">
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:static lg:transform-none ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-      >
-        <Sidebar
-         activePage="departments" onClose={closeSidebar} />
+    <div className="w-full max-w-[100vw] overflow-hidden">
+      <div className="flex justify-between items-center mb-2">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">Department Management</h1>
+          <p className="text-sm sm:text-base text-gray-500">Manage academic departments</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center">
+            <label htmlFor="rowsPerPage" className="text-sm text-gray-600 mr-2">
+              Rows:
+            </label>
+            <select
+              id="rowsPerPage"
+              value={departmentsPerPage}
+              onChange={handleRowsPerPageChange}
+              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+          <button
+            onClick={handleAdd}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
+          >
+            + Add Department
+          </button>
+        </div>
       </div>
 
-      <div className="flex-1 flex flex-col">
-        <Header
-          onToggleSidebar={toggleSidebar}
-          isSidebarOpen={isSidebarOpen}
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search departments..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 ml-64">
-          <div className="flex justify-between items-center mb-2">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">Department Management</h1>
-              <p className="text-sm sm:text-base text-gray-500">Manage academic departments</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center">
-                <label htmlFor="rowsPerPage" className="text-sm text-gray-600 mr-2">
-                  Rows:
-                </label>
-                <select
-                  id="rowsPerPage"
-                  value={departmentsPerPage}
-                  onChange={handleRowsPerPageChange}
-                  className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-              <button
-                onClick={handleAdd}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-              >
-                + Add Department
-              </button>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <input
-              type="text"
-              placeholder="Search departments..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r">
-              <p className="text-red-700">{error}</p>
-            </div>
-          )}
-
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : (
-            <>
-              <DepartmentTable
-                departments={currentDepartments}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onView={handleView}
-              />
-              
-              {filteredDepartments.length > 0 && (
-                <div className="mt-6">
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {modalType === 'add' && (
-            <AddDepartmentModal
-              onClose={handleCloseModal}
-              onSave={handleSaveDepartment}
-            />
-          )}
-          {modalType === 'edit' && selectedDepartment && (
-            <EditDepartmentModal
-              department={selectedDepartment}
-              onClose={handleCloseModal}
-              onSave={handleSaveDepartment}
-            />
-          )}
-          {modalType === 'view' && selectedDepartment && (
-            <ViewDepartmentModal
-              department={selectedDepartment}
-              onClose={handleCloseModal}
-            />
-          )}
-          {modalType === 'delete' && selectedDepartment && (
-            <DeleteDepartmentModal
-              department={selectedDepartment}
-              onClose={handleCloseModal}
-              onDeleteSuccess={handleConfirmDelete}
-            />
-          )}
-        </main>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : (
+        <>
+          <DepartmentTable
+            departments={currentDepartments}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onView={handleView}
+          />
+          
+          {filteredDepartments.length > 0 && (
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {modalType === 'add' && (
+        <AddDepartmentModal
+          onClose={handleCloseModal}
+          onSave={handleSaveDepartment}
+        />
+      )}
+      {modalType === 'edit' && selectedDepartment && (
+        <EditDepartmentModal
+          department={selectedDepartment}
+          onClose={handleCloseModal}
+          onSave={handleSaveDepartment}
+        />
+      )}
+      {modalType === 'view' && selectedDepartment && (
+        <ViewDepartmentModal
+          department={selectedDepartment}
+          onClose={handleCloseModal}
+        />
+      )}
+      {modalType === 'delete' && selectedDepartment && (
+        <DeleteDepartmentModal
+          department={selectedDepartment}
+          onClose={handleCloseModal}
+          onDeleteSuccess={handleConfirmDelete}
+        />
+      )}
     </div>
   );
 };

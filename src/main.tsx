@@ -4,7 +4,12 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import  store  from './redux/store.js';
 import App from './App';
+import { setupInterceptor } from './api/interceptor';
+import axiosInstance from './api/axiosInstance';
 import './index.css';
+
+// Setup Axios Interceptors (Auth & Error Handling)
+setupInterceptor(axiosInstance);
 
 const rootElement = document.getElementById('root');
 if (rootElement) {

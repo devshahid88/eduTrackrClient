@@ -10,13 +10,14 @@ interface ChatSidebarProps {
   onSelect: (chatId: string, name: string) => void;
   loading: boolean;
   error?: string;
-  teachers: Array<{ _id?: string; id?: string; username: string; department: string; firstname: string; lastname: string }>;
-  initiateChat: (teacherId: string) => void;
-  switchToTeacher: (chatId: string, teacher: { id: string; name: string }) => void;
+  directory: Array<{ _id?: string; id?: string; username: string; department: string; firstname: string; lastname: string; role?: string }>;
+  initiateChat: (userId: string) => void;
+  onSwitch: (chatId: string, contact: { id: string; name: string }) => void;
   sidebarOpen: boolean;
   setSidebarOpen: (open: boolean) => void;
   socketConnected: boolean;
-  currentStudentDeptId: string;
+  currentDeptId: string;
+  userRole: 'Student' | 'Teacher';
 }
 
 export const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -26,23 +27,27 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onSelect,
   loading,
   error,
-  teachers,
+  directory,
   initiateChat,
-  switchToTeacher,
+  onSwitch,
   sidebarOpen,
   setSidebarOpen,
   socketConnected,
-  currentStudentDeptId
+  currentDeptId,
+  userRole
 }) => {
   const [searchTerm, setSearchTerm] = React.useState('');
 
-  const filteredTeachers = teachers.filter(t => 
+  const filteredDirectory = directory.filter(t => 
     (t.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (`${t.firstname} ${t.lastname}`.toLowerCase()).includes(searchTerm.toLowerCase())
   );
 
-  const yourDeptTeachers = filteredTeachers.filter(t => t.department === currentStudentDeptId);
-  const otherDeptTeachers = filteredTeachers.filter(t => t.department !== currentStudentDeptId);
+  const yourDeptUsers = filteredDirectory.filter(t => t.department === currentDeptId);
+  const otherDeptUsers = filteredDirectory.filter(t => t.department !== currentDeptId);
+
+  const directoryLabel = userRole === 'Student' ? 'Teacher Directory' : 'Student Directory';
+  const placeholderLabel = userRole === 'Student' ? 'Search teachers...' : 'Search students...';
 
   return (
     <div className={`bg-white border-r border-gray-100 transition-all duration-300 ${
@@ -71,7 +76,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
           <input
             type="text"
-            placeholder="Search teachers by name..."
+            placeholder={placeholderLabel}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder:text-gray-400 font-medium shadow-sm"
@@ -83,7 +88,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         {loading && (
           <div className="flex flex-col items-center justify-center p-12 text-center">
             <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-sm font-medium text-gray-500">Finding your mentors...</p>
+            <p className="text-sm font-medium text-gray-500">Finding your contacts...</p>
           </div>
         )}
         
@@ -109,7 +114,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                     return (
                       <div
                         key={chat.chatId}
-                        onClick={() => switchToTeacher(chat.chatId, {
+                        onClick={() => onSwitch(chat.chatId, {
                           id: chat.contact._id,
                           name: chat.contact.username
                         })}
@@ -154,29 +159,29 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               </div>
             )}
 
-            {/* Teacher Directory Section */}
+            {/* Directory Section */}
             <div>
               <div className="px-6 py-4">
-                <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Teacher Directory</h2>
+                <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">{directoryLabel}</h2>
               </div>
               
               {/* Your Department */}
-              {yourDeptTeachers.length > 0 && (
+              {yourDeptUsers.length > 0 && (
                 <div className="mb-4">
                   <p className="px-6 py-1 text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">From Your Department</p>
                   <div className="space-y-0.5 px-3">
-                    {yourDeptTeachers.map(teacher => (
+                    {yourDeptUsers.map(user => (
                       <div
-                        key={teacher._id || teacher.id}
-                        onClick={() => initiateChat((teacher._id || teacher.id)!)}
+                        key={user._id || user.id}
+                        onClick={() => initiateChat((user._id || user.id)!)}
                         className="group flex items-center p-3 rounded-2xl hover:bg-blue-50/40 cursor-pointer transition-all border border-transparent hover:border-blue-100/50"
                       >
                         <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold border border-blue-100 group-hover:bg-white group-hover:scale-105 transition-all">
-                          {teacher.username[0].toUpperCase()}
+                          {user.username[0].toUpperCase()}
                         </div>
                         <div className="ml-3.5 flex-1 min-w-0">
-                          <p className="text-sm font-bold text-gray-900 truncate tracking-tight">{teacher.username}</p>
-                          <p className="text-[10px] font-semibold text-gray-400 truncate uppercase mt-0.5">Department Head Access</p>
+                          <p className="text-sm font-bold text-gray-900 truncate tracking-tight">{user.username}</p>
+                          <p className="text-[10px] font-semibold text-gray-400 truncate uppercase mt-0.5">Verified Account</p>
                         </div>
                         <div className="w-6 h-6 rounded-lg bg-gray-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                           <Search className="w-3 h-3 text-gray-400" />
@@ -188,21 +193,21 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
               )}
 
               {/* Other Departments */}
-              {otherDeptTeachers.length > 0 && (
+              {otherDeptUsers.length > 0 && (
                 <div>
                   <p className="px-6 py-1 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Other Departments</p>
                   <div className="space-y-0.5 px-3">
-                    {otherDeptTeachers.map(teacher => (
+                    {otherDeptUsers.map(user => (
                       <div
-                        key={teacher._id || teacher.id}
-                        onClick={() => initiateChat((teacher._id || teacher.id)!)}
+                        key={user._id || user.id}
+                        onClick={() => initiateChat((user._id || user.id)!)}
                         className="group flex items-center p-3 rounded-2xl hover:bg-gray-50 cursor-pointer transition-all"
                       >
                         <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center text-sm font-bold border border-gray-200 group-hover:bg-white group-hover:scale-105 transition-all">
-                          {teacher.username[0].toUpperCase()}
+                          {user.username[0].toUpperCase()}
                         </div>
                         <div className="ml-3.5 flex-1 min-w-0">
-                          <p className="text-sm font-bold text-gray-700 truncate group-hover:text-gray-900">{teacher.username}</p>
+                          <p className="text-sm font-bold text-gray-700 truncate group-hover:text-gray-900">{user.username}</p>
                           <p className="text-[10px] font-semibold text-gray-400 truncate uppercase mt-0.5 tracking-tighter">Verified Instructor</p>
                         </div>
                       </div>
@@ -211,10 +216,10 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 </div>
               )}
 
-              {filteredTeachers.length === 0 && (
+              {filteredDirectory.length === 0 && (
                 <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50/50 rounded-3xl m-4 border border-dashed border-gray-200">
                   <Search className="w-8 h-8 text-gray-300 mb-3" />
-                  <p className="text-sm font-bold text-gray-400">No teachers matched your search</p>
+                  <p className="text-sm font-bold text-gray-400">No results matched your search</p>
                 </div>
               )}
             </div>
@@ -226,3 +231,4 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
 };
 
 export default ChatSidebar;
+
