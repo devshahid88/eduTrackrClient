@@ -16,6 +16,7 @@ const AddGrade: React.FC = () => {
   const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
   const [students, setStudents] = useState<any[]>([]);
   const [grades, setGrades] = useState<any>({});
+  const [feedbacks, setFeedbacks] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
@@ -48,6 +49,7 @@ const AddGrade: React.FC = () => {
       setSelectedAssignment(null);
       setStudents([]);
       setGrades({});
+      setFeedbacks({});
       return;
     }
 
@@ -60,17 +62,21 @@ const AddGrade: React.FC = () => {
         _id: s.studentId,
         studentName: s.studentName || "Unknown",
         submission: s.submissionContent,
+        studentsubmittedAt: s.submittedAt, // Added for GradeEntryTable
       })) || [];
 
     setStudents(subs);
 
-    const initial: any = {};
+    const initialGrades: any = {};
+    const initialFeedbacks: any = {};
     subs.forEach((s: any) => {
       const sub = assignment.submissions.find((x: any) => x.studentId === s._id);
-      initial[s._id] = sub?.grade?.toString() || "";
+      initialGrades[s._id] = sub?.grade?.toString() || "";
+      initialFeedbacks[s._id] = sub?.feedback || "";
     });
 
-    setGrades(initial);
+    setGrades(initialGrades);
+    setFeedbacks(initialFeedbacks);
     setIsLoadingStudents(false);
   };
 
@@ -79,12 +85,20 @@ const AddGrade: React.FC = () => {
     setGrades((p: any) => ({ ...p, [studentId]: val }));
   };
 
+  const handleFeedbackChange = (studentId: string, feedback: string) => {
+    setFeedbacks((p: any) => ({ ...p, [studentId]: feedback }));
+  };
+
   const handleSubmitGrades = async () => {
     if (!selectedAssignment) return toast.error("Select an assignment");
 
     const gradesToSubmit = Object.entries(grades)
       .filter(([_, g]) => g !== "")
-      .map(([studentId, g]) => ({ studentId, grade: Number(g) }));
+      .map(([studentId, g]) => ({ 
+        studentId, 
+        grade: Number(g),
+        feedback: feedbacks[studentId] || ""
+      }));
 
     if (!gradesToSubmit.length) {
       toast.error("Enter at least one grade");
@@ -146,6 +160,8 @@ const AddGrade: React.FC = () => {
                 students={students}
                 grades={grades}
                 onGradeChange={handleGradeChange}
+                feedbacks={feedbacks}
+                onFeedbackChange={handleFeedbackChange}
               />
 
               <div className="mt-6 flex justify-end">

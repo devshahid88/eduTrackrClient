@@ -77,8 +77,8 @@ const StudentSideBar: React.FC<StudentSideBarProps> = ({ activePage, onClose }) 
   ];
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200">
-      <div className="flex items-center justify-between px-6 py-4">
+    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+      <div className="flex-shrink-0 flex items-center justify-between px-6 py-4">
         <h1 className="text-2xl font-bold text-blue-600">EduPortal</h1>
         {onClose && (
           <button 
@@ -90,7 +90,7 @@ const StudentSideBar: React.FC<StudentSideBarProps> = ({ activePage, onClose }) 
         )}
       </div>
       
-      <nav className="mt-4 overflow-hidden">
+      <nav className="flex-1 mt-4 overflow-y-auto no-scrollbar">
         {menuItems.map((section, index) => (
           <div key={index} className="mb-6">
             <div className="px-6 mb-2">

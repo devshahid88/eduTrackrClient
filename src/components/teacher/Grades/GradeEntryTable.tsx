@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GradeEntryTable = ({ students, grades, onGradeChange }) => {
+const GradeEntryTable = ({ students, grades, onGradeChange, feedbacks, onFeedbackChange }) => {
   console.log('GradeEntryTable rendered with students:', students);
   return (
     <div className="overflow-x-auto">
@@ -10,62 +10,32 @@ const GradeEntryTable = ({ students, grades, onGradeChange }) => {
       >
         <thead className="bg-gray-100">
           <tr>
-            <th
-              scope="col"
-              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
-            >
-              Student Name
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
-            >
-              Date
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
-            >
-              Submission
-            </th>
-            <th
-              scope="col"
-              className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider"
-            >
-              Grade (0-100)
-            </th>
+            <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Student Name</th>
+            <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Date</th>
+            <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Submission</th>
+            <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Grade (0-100)</th>
+            <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider">Feedback</th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {students.map((student) => (
-            <tr
-              key={student._id}
-              className="hover:bg-gray-50 transition-colors duration-200"
-            >
+            <tr key={student._id} className="hover:bg-gray-50 transition-colors duration-200">
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-base font-medium text-gray-900">
-                  {student.studentName}
-                </div>
+                <div className="text-base font-medium text-gray-900">{student.studentName}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-base text-gray-600">{new Date(student.studentsubmittedAt).toLocaleDateString()}</div>
+                <div className="text-base text-gray-600">
+                  {student.studentsubmittedAt ? new Date(student.studentsubmittedAt).toLocaleDateString() : 'N/A'}
+                </div>
               </td>
               <td className="px-6 py-4">
                 <div className="text-base text-gray-600">
                   {student.submission?.content ? (
-                    <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                      {student.submission.content}
-                    </p>
+                    <p className="text-sm text-gray-600 whitespace-pre-wrap">{student.submission.content}</p>
                   ) : student.submission?.files?.length > 0 ? (
                     <div className="space-y-1">
                       {student.submission.files.map((file, index) => (
-                        <a
-                          key={index}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:text-blue-800 block"
-                        >
+                        <a key={index} href={file.url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:text-blue-800 block">
                           {file.name || `File ${index + 1}`}
                         </a>
                       ))}
@@ -94,14 +64,17 @@ const GradeEntryTable = ({ students, grades, onGradeChange }) => {
                         : 'border-gray-300'
                     }`}
                     placeholder="0-100"
-                    aria-label={`Grade for ${student.studentName}`}
                   />
-                  {(grades[student._id] && (Number(grades[student._id]) < 0 || Number(grades[student._id]) > 100)) && (
-                    <div className="absolute visible bg-red-600 text-white text-xs rounded py-1 px-2 -mt-10">
-                      Grade must be between 0 and 100
-                    </div>
-                  )}
                 </div>
+              </td>
+              <td className="px-6 py-4">
+                <textarea
+                  value={feedbacks?.[student._id] || ''}
+                  onChange={(e) => onFeedbackChange?.(student._id, e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  placeholder="Feedback..."
+                  rows={2}
+                />
               </td>
             </tr>
           ))}

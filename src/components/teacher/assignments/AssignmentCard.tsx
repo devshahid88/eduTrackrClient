@@ -1,7 +1,18 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  MdAccessTime, 
+  MdGroups, 
+  MdPerson, 
+  MdAssignment, 
+  MdEdit, 
+  MdDeleteForever, 
+  MdChevronRight,
+  MdInfoOutline,
+  MdCheckCircle,
+  MdFileDownload
+} from 'react-icons/md';
 
-// Define TypeScript interfaces directly in AssignmentCard.tsx
 interface Submission {
   _id: string;
   studentName?: string;
@@ -9,11 +20,6 @@ interface Submission {
   isLate: boolean;
   grade?: number;
   feedback?: string;
-  submissionContent?: {
-    text: string;
-    files: { name: string; url: string }[];
-  };
-  attachments?: { name: string; url: string }[]; // For backward compatibility
 }
 
 interface Assignment {
@@ -25,266 +31,144 @@ interface Assignment {
   createdAt: string;
   maxMarks: number;
   submissions?: Submission[];
-  courseId: string;
-  departmentId: string;
+  courseId: any;
+  departmentId: any;
   allowLateSubmission: boolean;
   lateSubmissionPenalty: number;
   submissionFormat: string;
   isGroupAssignment: boolean;
   maxGroupSize: number;
-  attachments?: { name: string; url: string }[];
+  attachments?: string[];
   totalStudents?: number;
-  courseName: string;
-  departmentName: string;
-  teacherName?: string;
+  courseName?: string;
+  departmentName?: string;
 }
 
 interface AssignmentCardProps {
   assignment: Assignment;
-  onUpdate: (assignmentId: string, updatedData: Partial<Assignment> & { submissionId?: string; grade?: number; feedback?: string }) => void;
-  onDelete: (assignmentId: string) => void;
+  onUpdate: (id: string, data: any) => void;
+  onDelete: (id: string) => void;
+  className?: string;
 }
 
-const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment, onUpdate, onDelete }) => {
-  const [showDetails, setShowDetails] = useState(false);
+const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment, onUpdate, onDelete, className = "" }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Calculate assignment status
   const getDaysUntilDue = () => {
     const now = new Date();
     const dueDate = new Date(assignment.dueDate);
     const diffTime = dueDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  const daysUntilDue = getDaysUntilDue();
-  const isExpired = daysUntilDue < 0;
-  const isNearDue = daysUntilDue <= 3 && daysUntilDue >= 0;
+  const daysLeft = getDaysUntilDue();
+  const isExpired = daysLeft < 0;
+  const isCritical = daysLeft >= 0 && daysLeft <= 3;
 
-  // Get status badge
-  const getStatusBadge = () => {
-    if (isExpired) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          Expired
-        </span>
-      );
-    } else if (isNearDue) {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          Due Soon
-        </span>
-      );
-    } else {
-      return (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-          Active
-        </span>
-      );
-    }
-  };
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  // Handle quick actions
-  const handleExtendDeadline = () => {
-    const newDueDate = new Date(assignment.dueDate);
-    newDueDate.setDate(newDueDate.getDate() + 7); // Extend by 7 days
-    onUpdate(assignment._id, { dueDate: newDueDate.toISOString() });
-  };
-
-  // Calculate submission statistics
   const totalSubmissions = assignment.submissions?.length || 0;
-  const submissionRate = assignment.totalStudents
-    ? Math.round((totalSubmissions / assignment.totalStudents) * 100)
-    : 0;
+  const submissionRate = assignment.totalStudents ? Math.round((totalSubmissions / assignment.totalStudents) * 100) : 0;
 
   return (
-    <div
-      className={`bg-white rounded-xl shadow-sm border-2 transition-all duration-200 hover:shadow-md ${
-        isExpired ? 'border-red-200' : isNearDue ? 'border-yellow-200' : 'border-gray-200'
-      }`}
-    >
-      {/* Card Header */}
-      <div className="p-6 pb-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{assignment.title}</h3>
-            <div className="flex items-center space-x-3 text-sm text-gray-600">
-              <span className="font-medium text-blue-600">{assignment.courseName}</span>
-              <span>•</span>
-              <span>{assignment.departmentName}</span>
+    <div className={`group relative bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 overflow-hidden flex flex-col ${className}`}>
+      {/* Decorative Top Bar */}
+      <div className={`h-2 w-full ${isExpired ? 'bg-rose-500' : isCritical ? 'bg-amber-500' : 'bg-blue-600'}`} />
+
+      <div className="p-8 flex-1 space-y-6">
+        {/* Header: Title & Status */}
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-1">
+            <h3 className="text-xl font-black text-gray-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-2">
+              {assignment.title}
+            </h3>
+            <div className="flex items-center gap-2">
+               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{assignment.courseName || "Knowledge Module"}</span>
+               <div className="w-1 h-1 rounded-full bg-gray-200" />
+               <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{assignment.departmentName || "General Faculty"}</span>
             </div>
           </div>
-          <div className="ml-4 flex items-center space-x-2">{getStatusBadge()}</div>
-        </div>
-
-        {/* Assignment Info */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>Due: {formatDate(assignment.dueDate)}</span>
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span>Max: {assignment.maxMarks} marks</span>
+          <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+            isExpired ? 'bg-rose-50 text-rose-600' : isCritical ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
+          }`}>
+            {isExpired ? 'Terminated' : isCritical ? 'Critical' : 'Operational'}
           </div>
         </div>
 
         {/* Description */}
-        <p className="text-sm text-gray-600 line-clamp-2 mb-4">{assignment.description}</p>
+        <p className="text-sm text-gray-500 font-medium line-clamp-2 leading-relaxed">
+          {assignment.description || "No description provided for this architectural learning task."}
+        </p>
 
-        {/* Submission Stats */}
-        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Submissions</span>
-            <span className="text-sm font-bold text-blue-600">{totalSubmissions}</span>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gray-50/50 p-4 rounded-3xl border border-gray-50 flex flex-col items-center justify-center text-center">
+             <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Max Marks</span>
+             <span className="text-lg font-black text-gray-900">{assignment.maxMarks}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${Math.max(submissionRate, 5)}%` }}
-            ></div>
-          </div>
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>{submissionRate}% submitted</span>
-            <span>{assignment.totalStudents || 0} students</span>
+          <div className="bg-gray-50/50 p-4 rounded-3xl border border-gray-50 flex flex-col items-center justify-center text-center">
+             <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Due Date</span>
+             <span className="text-xs font-black text-gray-900">{new Date(assignment.dueDate).toLocaleDateString()}</span>
           </div>
         </div>
 
-        {/* Assignment Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {assignment.isGroupAssignment && (
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-purple-100 text-purple-800">
-              <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                ></path>
-              </svg>
-              Group (Max {assignment.maxGroupSize})
-            </span>
-          )}
-          {assignment.allowLateSubmission && (
-            <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
-              Late Allowed (-{assignment.lateSubmissionPenalty}%)
-            </span>
-          )}
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
-            {assignment.submissionFormat}
-          </span>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Link
-            to={`/teacher/assignments/${assignment._id}`}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-            <span>View Submissions</span>
-          </Link>
-          <button
-            onClick={() => setShowDetails(!showDetails)}
-            className="text-sm text-gray-600 hover:text-gray-800 font-medium flex items-center space-x-1"
-          >
-            <svg
-              className={`w-4 h-4 transform transition-transform ${showDetails ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
-            <span>Details</span>
-          </button>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {!isExpired && (
-            <button
-              onClick={handleExtendDeadline}
-              className="px-3 py-1 text-xs font-medium text-orange-700 bg-orange-100 rounded-md hover:bg-orange-200 transition-colors"
-            >
-              Extend (+7 days)
-            </button>
-          )}
-          <button
-            onClick={() => onDelete(assignment._id)}
-            className="px-3 py-1 text-xs font-medium text-red-700 bg-red-100 rounded-md hover:bg-red-200 transition-colors"
-          >
-            Delete
-          </button>
-        </div>
-      </div>
-
-      {/* Expanded Details */}
-      {showDetails && (
-        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-          <div className="space-y-3">
-            {assignment.instructions && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Instructions:</h4>
-                <p className="text-sm text-gray-600">{assignment.instructions}</p>
-              </div>
-            )}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-gray-700">Created:</span>
-                <span className="text-gray-600 ml-2">{formatDate(assignment.createdAt)}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-700">Time Left:</span>
-                <span
-                  className={`ml-2 font-medium ${
-                    isExpired ? 'text-red-600' : isNearDue ? 'text-yellow-600' : 'text-green-600'
-                  }`}
-                >
-                  {isExpired ? `${Math.abs(daysUntilDue)} days overdue` : `${daysUntilDue} days left`}
-                </span>
-              </div>
+        {/* Engagement Progress */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-end">
+            <div className="flex items-center gap-2">
+               <MdGroups className="text-lg text-blue-600" />
+               <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest">Submissions</span>
             </div>
-            {assignment.attachments && assignment.attachments.length > 0 && (
-              <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Attachments:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {assignment.attachments.map((attachment, index) => (
-                    <a
-                      key={index}
-                      href={attachment.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-blue-100 text-blue-800 hover:bg-blue-200"
-                    >
-                      📎 {attachment.name || `Attachment ${index + 1}`}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="text-[10px] font-black">
+               <span className="text-blue-600">{totalSubmissions}</span>
+               <span className="text-gray-300 mx-1">/</span>
+               <span className="text-gray-400">{assignment.totalStudents || "--"}</span>
+            </div>
+          </div>
+          <div className="h-3 w-full bg-gray-50 rounded-full overflow-hidden border border-gray-100">
+             <div 
+               className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.3)]"
+               style={{ width: `${Math.max(submissionRate, 8)}%` }}
+             />
           </div>
         </div>
-      )}
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-2 pt-2">
+           <div className="flex items-center gap-1.5 px-3 py-1 bg-gray-50 rounded-xl text-[10px] font-bold text-gray-500 border border-gray-100">
+              <MdPerson className="text-sm" /> {assignment.submissionFormat}
+           </div>
+           {assignment.isGroupAssignment && (
+             <div className="flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-xl text-[10px] font-bold text-indigo-600 border border-indigo-100">
+                <MdGroups className="text-sm" /> Group Task
+             </div>
+           )}
+           {assignment.allowLateSubmission && (
+             <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 rounded-xl text-[10px] font-bold text-amber-600 border border-amber-100">
+                <MdAccessTime className="text-sm" /> Late Sync OK
+             </div>
+           )}
+        </div>
+      </div>
+
+      {/* Footer Actions */}
+      <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between">
+        <Link 
+          to={`/teacher/assignments/${assignment._id}`}
+          className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
+        >
+          Evaluate Results
+          <MdChevronRight className="text-lg" />
+        </Link>
+
+        <div className="flex items-center gap-2">
+           <button 
+             onClick={() => onDelete(assignment._id)}
+             className="p-3 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all active:scale-90"
+             title="Terminate Task"
+           >
+              <MdDeleteForever size={20} />
+           </button>
+        </div>
+      </div>
     </div>
   );
 };

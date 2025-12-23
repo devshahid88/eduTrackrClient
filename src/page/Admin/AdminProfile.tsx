@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
-import { MdEdit, MdSave, MdCancel, MdCameraAlt, MdPerson, MdEmail, MdAdminPanelSettings } from 'react-icons/md';
+import { MdEdit, MdSave, MdCancel, MdCameraAlt, MdPerson, MdEmail, MdAdminPanelSettings, MdShield } from 'react-icons/md';
 
 // Interface definitions
 interface Admin {
@@ -189,14 +189,21 @@ const AdminProfile: React.FC = () => {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 h-32 md:h-40 relative">
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-                <div className="relative">
+      <div className="container mx-auto px-4 py-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-5xl mx-auto space-y-12">
+          
+          {/* Branded Identity Shield Backdrop */}
+          <div className="relative group overflow-hidden rounded-[3rem] shadow-2xl border border-gray-100">
+            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-indigo-950 to-gray-900 h-64 md:h-80 group-hover:scale-105 transition-transform duration-1000"></div>
+            <div className="absolute top-0 right-0 p-20 opacity-10 group-hover:rotate-12 transition-transform duration-1000">
+               <MdAdminPanelSettings size={300} className="text-white" />
+            </div>
+            
+            <div className="relative pt-40 pb-12 px-10 text-center md:text-left flex flex-col md:flex-row items-end gap-8">
+              <div className="relative mx-auto md:mx-0">
+                <div className="p-2 bg-white/10 backdrop-blur-xl rounded-[2.5rem] border border-white/20 shadow-2xl group-hover:scale-105 transition-transform duration-500">
                   <img
-                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
+                    className="w-40 h-40 md:w-48 md:h-48 rounded-[2rem] object-cover shadow-2xl"
                     src={editData.profileImage || fallbackAvatar}
                     alt="Admin Profile"
                     onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -205,94 +212,133 @@ const AdminProfile: React.FC = () => {
                     }}
                   />
                   {isEditing && (
-                    <label className="absolute bottom-2 right-2 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg">
-                      <MdCameraAlt size={16} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
+                    <label className="absolute -bottom-4 -right-4 bg-indigo-600 text-white p-4 rounded-2xl cursor-pointer hover:bg-gray-900 transition-all shadow-2xl hover:scale-110 active:scale-95 border-4 border-white">
+                      <MdCameraAlt size={20} />
+                      <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                     </label>
                   )}
                 </div>
               </div>
-            </div>
-            <div className="pt-20 pb-6 px-6 text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-                {editData.firstname} {editData.lastname}
-              </h1>
-              <div className="inline-flex items-center bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm mb-4">
-                <MdAdminPanelSettings className="mr-1" />
-                {admin.role}
+
+              <div className="flex-grow space-y-4 pb-4">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-500/20 backdrop-blur-md text-indigo-200 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border border-indigo-400/30">
+                  <MdShield className="w-3 h-3" />
+                  System Administrator
+                </div>
+                <div>
+                  <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-xl">
+                    {editData.firstname} <span className="text-indigo-400">{editData.lastname}</span>
+                  </h1>
+                  <p className="text-indigo-200/60 font-medium mt-2">Active session protocol authorized for registry control.</p>
+                </div>
               </div>
-              <div className="flex justify-center space-x-3">
+
+              <div className="flex flex-col md:flex-row gap-4 pb-4 w-full md:w-auto">
                 {isEditing ? (
                   <>
                     <button
                       onClick={handleUpdate}
                       disabled={updating}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
+                      className="flex items-center justify-center gap-3 bg-white text-indigo-950 hover:bg-indigo-50 px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0"
                     >
-                      <MdSave size={18} />
-                      <span>{updating ? 'Saving...' : 'Save Changes'}</span>
+                      <MdSave size={20} />
+                      {updating ? 'Processing...' : 'Sync Profile'}
                     </button>
                     <button
                       onClick={handleCancelEdit}
                       disabled={updating}
-                      className="flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
+                      className="flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md text-white hover:bg-white/20 px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest border border-white/20 transition-all hover:-translate-y-1 active:translate-y-0"
                     >
-                      <MdCancel size={18} />
-                      <span>Cancel</span>
+                      <MdCancel size={20} />
+                      Abort Changes
                     </button>
                   </>
                 ) : (
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+                    className="flex items-center justify-center gap-3 bg-white text-indigo-950 hover:bg-indigo-50 px-8 py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-2xl transition-all hover:-translate-y-1 active:translate-y-0 border-b-4 border-indigo-200"
                   >
-                    <MdEdit size={18} />
-                    <span>Edit Profile</span>
+                    <MdEdit size={20} />
+                    Modify Identity
                   </button>
                 )}
               </div>
             </div>
           </div>
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-              <MdPerson className="mr-2 text-blue-600" />
-              Admin Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(['username', 'firstname', 'lastname', 'email'] as (keyof EditData)[]).map((field) => (
-                <div key={field}>
-                  <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center">
-                    {field === 'email' ? <MdEmail className="mr-1" /> : <MdPerson className="mr-1" />}
-                    {field === 'firstname'
-                      ? 'First Name'
-                      : field === 'lastname'
-                      ? 'Last Name'
-                      : field === 'email'
-                      ? 'Email Address'
-                      : 'Username'}
-                  </label>
-                  {isEditing ? (
-                    <input
-                      type={field === 'email' ? 'email' : 'text'}
-                      value={editData[field]}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        setEditData((prev) => ({ ...prev, [field]: e.target.value }))
-                      }
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
-                      placeholder={`Enter ${field}`}
-                    />
-                  ) : (
-                    <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{editData[field]}</p>
-                  )}
+
+          {/* Identity Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+             <div className="lg:col-span-2 space-y-8">
+               <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10">
+                 <div className="flex items-center gap-4 mb-10">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                       <MdPerson size={24} />
+                    </div>
+                    <div>
+                       <h2 className="text-xl font-black text-gray-900 tracking-tight">Personal Telemetry</h2>
+                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Core Identity Parameters</p>
+                    </div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   {(['firstname', 'lastname', 'username', 'email'] as (keyof EditData)[]).map((field) => (
+                     <div key={field} className="space-y-3">
+                       <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">
+                         {field.replace(/([A-Z])/g, ' $1').trim()}
+                       </label>
+                       {isEditing ? (
+                         <div className="relative group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-indigo-500 transition-colors">
+                               {field === 'email' ? <MdEmail /> : <MdPerson />}
+                            </div>
+                            <input
+                              type={field === 'email' ? 'email' : 'text'}
+                              value={editData[field]}
+                              onChange={(e) => setEditData((prev) => ({ ...prev, [field]: e.target.value }))}
+                              className="w-full pl-12 pr-6 py-4 bg-gray-50 border-gray-100 rounded-2xl text-sm font-bold focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+                            />
+                         </div>
+                       ) : (
+                         <div className="p-5 bg-gray-50/50 rounded-2xl border border-gray-50 text-gray-700 font-black text-sm">
+                           {editData[field]}
+                         </div>
+                       )}
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
+
+             <div className="space-y-8">
+                <div className="bg-gray-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-2xl border border-white/10 group">
+                   <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+                   <div className="relative space-y-6">
+                      <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                         <MdShield size={32} className="text-indigo-400" />
+                      </div>
+                      <div>
+                         <h3 className="text-2xl font-black tracking-tight">Security Protocol</h3>
+                         <p className="text-indigo-200/40 text-xs font-medium mt-1">Platform authority level</p>
+                      </div>
+                      <div className="pt-6 border-t border-white/10 space-y-4">
+                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-indigo-300/60">
+                            <span>Status</span>
+                            <span className="text-emerald-400">Authenticated</span>
+                         </div>
+                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-indigo-300/60">
+                            <span>Clearance</span>
+                            <span>Level Alpha</span>
+                         </div>
+                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-indigo-300/60">
+                            <span>Registry ID</span>
+                            <span className="font-mono">{admin.id.slice(-8).toUpperCase()}</span>
+                         </div>
+                      </div>
+                   </div>
                 </div>
-              ))}
-            </div>
+             </div>
           </div>
+
         </div>
       </div>
     </>

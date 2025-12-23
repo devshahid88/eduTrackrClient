@@ -101,7 +101,7 @@ const TeacherSideBar: React.FC<TeacherSideBarProps> = ({ activePage, onClose }) 
   );
 
   return (
-    <div className="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-white border-r border-gray-200">
       <div className="flex items-center justify-between px-6 py-4">
         <Link to="/teacher/dashboard" className="flex items-center">
           <span className="text-xl font-bold text-blue-600">EduPortal</span>
@@ -116,7 +116,7 @@ const TeacherSideBar: React.FC<TeacherSideBarProps> = ({ activePage, onClose }) 
         )}
       </div>
 
-      <div className="flex-1 px-3 py-4">
+      <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-6">
         {Object.entries(menuItems).map(([section, items]) => (
           <React.Fragment key={section}>
             {renderSection(section, items)}

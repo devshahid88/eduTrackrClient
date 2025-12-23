@@ -9,6 +9,13 @@ import ViewUserModal from '../../components/admin/users/ViewUserModal';
 import DeleteUserModal from '../../components/admin/users/DeleteUserModal';
 import AddUserModal from '../../components/admin/users/AddUserModal';
 import { toast } from 'react-hot-toast';
+import { 
+  MdPeople, 
+  MdAdd, 
+  MdErrorOutline, 
+  MdFingerprint, 
+  MdPersonSearch 
+} from 'react-icons/md';
 
 // Interface definitions
 interface User {
@@ -58,46 +65,40 @@ const AdminUserManagement: React.FC = () => {
 
   const roleOptions: string[] = ['All', 'Admin', 'Teacher', 'Student'];
 
-useEffect(() => {
-  fetchAllUsers();
-}, [searchTerm, selectedRole]);
+  useEffect(() => {
+    fetchAllUsers();
+  }, [searchTerm, selectedRole]);
 
-  // components/admin/users/AdminUserManagement.tsx
-const fetchAllUsers = async (): Promise<void> => {
-  setLoading(true);
-  try {
-    const response = await axios.get<ApiResponse<User[]>>("/api/admins/search", {
-      params: {
-        searchTerm: searchTerm.trim(), // optional: trim whitespace
-        role: selectedRole,            // always send the role, including "All"
-      },
-    });
+  const fetchAllUsers = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      const response = await axios.get<ApiResponse<User[]>>("/api/admins/search", {
+        params: {
+          searchTerm: searchTerm.trim(),
+          role: selectedRole,
+        },
+      });
 
-    if (response.data.success) {
-      setUsers(response.data.data || []);
-      console.log("Fetched users:", response.data.data);
-      setError(null);
-    } else {
-      throw new Error(response.data.message || "Failed to fetch users");
+      if (response.data.success) {
+        setUsers(response.data.data || []);
+        setError(null);
+      } else {
+        throw new Error(response.data.message || "Failed to fetch users");
+      }
+    } catch (err: any) {
+      console.error("Error fetching users:", err);
+      setError("Failed to fetch users.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err: any) {
-    console.error("Error fetching users:", err);
-    setError("Failed to fetch users.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const getEndpointByRole = (role: string): string => {
     switch (role) {
-      case 'Admin':
-        return '/api/admins';
-      case 'Teacher':
-        return '/api/teachers';
-      case 'Student':
-        return '/api/students';
-      default:
-        return '/api/students';
+      case 'Admin': return '/api/admins';
+      case 'Teacher': return '/api/teachers';
+      case 'Student': return '/api/students';
+      default: return '/api/students';
     }
   };
 
@@ -218,144 +219,133 @@ const fetchAllUsers = async (): Promise<void> => {
     setSelectedRole('All');
   };
 
-
   return (
-    <>
-      {/* Google Fonts and Tabler Icons */}
-      <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet"
-      />
-      <link
-        href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.30.0/tabler-icons.min.css"
-        rel="stylesheet"
-      />
+    <div className="container mx-auto px-4 py-10 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Branded Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-2">
+        <div className="space-y-4">
+           <div className="flex items-center gap-3">
+              <div className="p-3 bg-gray-900 rounded-2xl text-blue-400 shadow-2xl shadow-blue-500/20">
+                 <MdPeople className="text-2xl" />
+              </div>
+              <div className="h-6 w-px bg-gray-200" />
+              <div className="flex items-center gap-2">
+                 <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">Personnel Registry</span>
+                 <div className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black border border-blue-100">{users.length} Active</div>
+              </div>
+           </div>
+           <div>
+              <h1 className="text-5xl font-black text-gray-900 tracking-tight leading-none">Identity Management</h1>
+              <p className="text-gray-400 font-bold mt-2">Centralized control for all system actors and role assignments.</p>
+           </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+           <div className="bg-white px-8 py-5 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-6 group">
+              <div className="flex flex-col">
+                 <label htmlFor="rowsPerPage" className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5 px-1">Integrity View</label>
+                 <select
+                   id="rowsPerPage"
+                   value={usersPerPage}
+                   onChange={handleRowsPerPageChange}
+                   className="bg-transparent border-none text-xs font-black text-gray-900 focus:ring-0 cursor-pointer p-0"
+                 >
+                   <option value={5}>05 Souls</option>
+                   <option value={10}>10 Souls</option>
+                   <option value={20}>20 Souls</option>
+                   <option value={50}>50 Souls</option>
+                 </select>
+              </div>
+              <div className="w-px h-8 bg-gray-100" />
+              <button
+                onClick={handleAdd}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-black shadow-2xl shadow-blue-200 hover:scale-105 transition-all active:scale-95 text-xs truncate"
+              >
+                <MdAdd className="text-lg" />
+                Initialize Persona
+              </button>
+           </div>
+        </div>
+      </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800 mb-2">User Management</h1>
-            <p className="text-sm sm:text-base text-gray-500 mb-6">
-              Manage platform users, search and filter by role.
-            </p>
+      {/* Floating Filter Hub */}
+      <div className="px-2">
+         <Filter
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedRole={selectedRole}
+            setSelectedRole={setSelectedRole}
+            roleOptions={roleOptions}
+            className="w-full"
+         />
+      </div>
 
-            {/* Filter and Add User Section */}
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-              <Filter
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                selectedRole={selectedRole}
-                setSelectedRole={setSelectedRole}
-                roleOptions={roleOptions}
-                classOptions={['All', 'Admin', 'Teacher', 'Student']}
-                className="w-full sm:w-auto"
-                
+      {/* Data Visualization Grid */}
+      <div className="px-2">
+         {error && (
+           <div className="bg-rose-50 border border-rose-100 p-6 mb-10 rounded-[2rem] flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-rose-500 shadow-sm">
+                <MdErrorOutline size={24} />
+             </div>
+             <div>
+                <p className="text-sm font-black text-rose-700 tracking-tight leading-none italic">{error}</p>
+                <button onClick={handleClearFilters} className="text-[10px] font-black text-rose-500 uppercase tracking-widest mt-1 hover:underline underline-offset-4">Reset Matrix Filters</button>
+             </div>
+           </div>
+         )}
+
+         {loading ? (
+           <div className="bg-white rounded-[2.5rem] p-24 flex flex-col items-center justify-center gap-6 shadow-sm border border-gray-100">
+              <div className="relative">
+                 <div className="animate-spin h-16 w-16 border-[5px] border-blue-600/10 border-t-blue-600 rounded-full" />
+                 <MdFingerprint className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl text-blue-600 animate-pulse" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 ml-1">Decoding Personnel Matrix...</p>
+           </div>
+         ) : filteredUsers.length === 0 ? (
+           <div className="bg-white rounded-[2.5rem] p-24 border border-gray-100 shadow-sm text-center flex flex-col items-center opacity-40">
+              <MdPersonSearch size={64} className="text-gray-300 mb-6" />
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-gray-500 mb-2">No Matches in Current Sector</p>
+              <button onClick={handleClearFilters} className="text-xs font-black text-blue-600 uppercase tracking-widest hover:underline underline-offset-4">Recalibrate Filters</button>
+           </div>
+         ) : (
+           <>
+              <UserTable
+                users={paginatedUsers}
+                onEdit={handleEdit}
+                onView={handleView}
+                onDelete={handleDelete}
               />
 
-              <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="flex items-center">
-                  <label htmlFor="rowsPerPage" className="text-sm text-gray-600 mr-2">
-                    Rows:
-                  </label>
-                  <select
-                    id="rowsPerPage"
-                    value={usersPerPage}
-                    onChange={handleRowsPerPageChange}
-                    className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-                  >
-                    <option value={5}>5</option>
-                    <option value={10}>10</option>
-                    <option value={20}>20</option>
-                    <option value={50}>50</option>
-                  </select>
-                </div>
-
-                <button
-                  onClick={handleAdd}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition w-full sm:w-auto"
-                >
-                  + Add User
-                </button>
+              <div className="mt-12 bg-white/50 backdrop-blur-sm p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredUsers.length}
+                  itemsPerPage={usersPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={setUsersPerPage}
+                  variant="minimal"
+                />
               </div>
-            </div>
+           </>
+         )}
+      </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r">
-                <div className="flex items-center">
-                  <i className="ti ti-alert-circle text-red-400 text-lg mr-2"></i>
-                  <div>
-                    <p className="text-red-700 text-sm font-medium">{error}</p>
-                    <p className="text-red-600 text-xs mt-1">
-                      Please try refreshing or contact support.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Loading State */}
-            {loading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-              </div>
-            ) : (
-              <>
-                {/* User Table */}
-                {filteredUsers.length === 0 ? (
-                  <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg text-center">
-                    <p className="text-gray-600 mb-4">
-                      No users found matching your filters.
-                    </p>
-                    <button
-                      onClick={handleClearFilters}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      Clear filters
-                    </button>
-                  </div>
-                ) : (
-                  <UserTable
-                    users={paginatedUsers}
-                    onEdit={handleEdit}
-                    onView={handleView}
-                    onDelete={handleDelete}
-                  />
-                )}
-
-                {/* Pagination */}
-                {filteredUsers.length > 0 && (
-                  <div className="mt-6">
-                    <Pagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      onPageChange={setCurrentPage}
-                    />
-                  </div>
-                )}
-              </>
-            )}
-
-        {/* Modals */}
-        {modalType === 'edit' && selectedUser && (
-          <EditUserModal
-            user={selectedUser}
-            onClose={handleCloseModal}
-            onSave={handleSaveUser}
-          />
-        )}
-        {modalType === 'view' && selectedUser && (
-          <ViewUserModal user={selectedUser} onClose={handleCloseModal} />
-        )}
-        {modalType === 'delete' && selectedUser && (
-          <DeleteUserModal
-            user={selectedUser}
-            onClose={handleCloseModal}
-            onDeleteSuccess={handleConfirmDelete}
-          />
-        )}
-        {modalType === 'add' && (
-          <AddUserModal onClose={handleCloseModal} onSave={handleSaveUser}  />
-        )}
-
-    </>
+      {/* Modals */}
+      {modalType === 'edit' && selectedUser && (
+        <EditUserModal user={selectedUser} onClose={handleCloseModal} onSave={handleSaveUser} />
+      )}
+      {modalType === 'view' && selectedUser && (
+        <ViewUserModal user={selectedUser} onClose={handleCloseModal} />
+      )}
+      {modalType === 'delete' && selectedUser && (
+        <DeleteUserModal user={selectedUser} onClose={handleCloseModal} onDeleteSuccess={handleConfirmDelete} />
+      )}
+      {modalType === 'add' && (
+        <AddUserModal onClose={handleCloseModal} onSave={handleSaveUser}  />
+      )}
+    </div>
   );
 };
 

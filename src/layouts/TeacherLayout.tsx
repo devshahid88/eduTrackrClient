@@ -11,7 +11,7 @@ const TeacherLayout = () => {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
@@ -23,7 +23,7 @@ const TeacherLayout = () => {
       {/* Sidebar - Fixed on desktop now */}
       <aside
         className={`
-          fixed top-0 left-0 bottom-0 z-50 w-64 bg-white shadow-lg
+          fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg
           transform transition-transform duration-300
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           md:translate-x-0
@@ -33,11 +33,11 @@ const TeacherLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden ml-0 md:ml-64">
+      <div className="flex-1 flex flex-col h-full ml-0 md:ml-64 relative overflow-hidden">
         <Header role="teacher" onMenuClick={toggleSidebar} />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8 no-scrollbar">
           <Outlet />
         </main>
       </div>

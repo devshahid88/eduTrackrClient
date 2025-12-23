@@ -64,86 +64,100 @@ const NotificationPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white rounded-xl shadow-lg mt-8 transition-all hover:shadow-xl">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b">
-        <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <MdNotifications className="text-blue-600" /> Notifications
-        </h2>
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center justify-center bg-blue-100 text-blue-700 text-sm font-semibold px-3 py-1 rounded-full">
-            {unreadCount} New
-          </span>
-          <button
-            className="flex items-center gap-1 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleMarkAllAsRead}
-            disabled={unreadCount === 0}
-          >
-            <MdCheckCircle /> Mark All Read
-          </button>
+    <div className="container mx-auto max-w-4xl py-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+        <div>
+          <h2 className="text-4xl font-black text-gray-900 tracking-tight flex items-center gap-4">
+            Updates & Alerts
+          </h2>
+          <div className="flex items-center gap-3 mt-2">
+             <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-widest">
+                {unreadCount} UNREAD
+             </span>
+             <p className="text-gray-500 font-medium text-sm">Real-time alerts and system notifications.</p>
+          </div>
         </div>
+        <button
+          className="px-8 py-3 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-gray-200 hover:bg-black transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleMarkAllAsRead}
+          disabled={unreadCount === 0}
+        >
+          Mark All As Read
+        </button>
       </div>
+
       {loading ? (
-        <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div className="space-y-4 px-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white h-24 rounded-3xl border border-gray-100 animate-pulse" />
+          ))}
         </div>
       ) : notifications.length === 0 ? (
-        <div className="text-center py-12 text-gray-500 flex flex-col items-center">
-             <MdNotifications className="text-6xl text-gray-300 mb-3" />
-             <p className="text-lg">No notifications yet.</p>
+        <div className="flex flex-col items-center justify-center py-32 text-center space-y-4 px-4 bg-white/50 backdrop-blur-sm rounded-[3rem] border border-gray-100">
+          <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center text-5xl mb-4">
+            🔕
+          </div>
+          <h3 className="text-2xl font-black text-gray-900">Inbox is Empty</h3>
+          <p className="text-gray-500 max-w-sm font-medium">You’re all caught up! New notifications will appear here as they arrive.</p>
         </div>
       ) : (
-        <ul className="space-y-3">
+        <div className="space-y-4 px-2">
           {notifications.map((notif) => (
-            <li
+            <div
               key={notif._id}
-              className={`relative flex items-start gap-4 p-4 rounded-xl border transition-all duration-300 ${
+              className={`group relative flex items-center gap-6 p-6 rounded-[2rem] border transition-all duration-300 ${
                 notif.read 
-                  ? 'bg-white border-gray-100' 
-                  : 'bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-100'
-              } hover:bg-gray-50`}
+                  ? 'bg-white/60 border-gray-50 opacity-80' 
+                  : 'bg-white border-blue-100 shadow-lg shadow-blue-50/50 ring-1 ring-blue-50'
+              } hover:translate-x-1 hover:bg-white`}
             >
-              <div className={`mt-1 p-2 rounded-lg ${notif.read ? 'bg-gray-100' : 'bg-white shadow-sm'}`}>
+              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-inner ${
+                  notif.type === 'assignment' ? 'bg-amber-50 text-amber-500' :
+                  notif.type === 'grade' ? 'bg-emerald-50 text-emerald-500' :
+                  notif.type === 'message' ? 'bg-blue-50 text-blue-500' : 'bg-gray-50 text-gray-400'
+              }`}>
                 {getIcon(notif.type)}
               </div>
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
-                   <h3 className={`font-semibold text-sm truncate pr-2 ${notif.read ? 'text-gray-700' : 'text-blue-900'}`}>
+                   <h3 className={`font-black tracking-tight ${notif.read ? 'text-gray-600' : 'text-gray-900'} truncate mr-4`}>
                       {notif.title}
                    </h3>
-                   <span className="text-xs text-gray-400 whitespace-nowrap">
-                      {new Date(notif.timestamp).toLocaleString(undefined, {
-                         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                      })}
+                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                      {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                    </span>
                 </div>
-                <p className={`text-sm leading-relaxed ${notif.read ? 'text-gray-600' : 'text-gray-800'}`}>
+                <p className={`text-sm font-medium leading-relaxed ${notif.read ? 'text-gray-400' : 'text-gray-600'} line-clamp-1 group-hover:line-clamp-none transition-all`}>
                    {notif.message}
                 </p>
-                
-                 <div className="flex gap-2 mt-3 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!notif.read && (
-                      <button
-                        className="text-xs flex items-center gap-1 px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-md hover:bg-blue-50 transition"
-                        onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notif._id); }}
-                      >
-                       <MdCheckCircle className="text-xs" /> Mark Read
-                      </button>
-                    )}
-                    <button
-                      className="text-xs flex items-center gap-1 px-3 py-1.5 bg-white border border-red-200 text-red-600 rounded-md hover:bg-red-50 transition"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(notif._id); }}
-                    >
-                      <MdDelete className="text-xs" /> Delete
-                    </button>
-                  </div>
               </div>
-            </li>
+
+              <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0">
+                {!notif.read && (
+                    <button
+                        className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors"
+                        onClick={(e) => { e.stopPropagation(); handleMarkAsRead(notif._id); }}
+                        title="Mark as read"
+                    >
+                        <MdCheckCircle className="w-5 h-5" />
+                    </button>
+                )}
+                <button
+                    className="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl flex items-center justify-center hover:bg-rose-500 hover:text-white transition-colors"
+                    onClick={(e) => { e.stopPropagation(); handleDelete(notif._id); }}
+                    title="Delete notification"
+                >
+                    <MdDelete className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
 };
 
-export default NotificationPage; 
+export default NotificationPage;

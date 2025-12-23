@@ -1,7 +1,7 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 import { useSelector } from 'react-redux';
 import axios from '../../api/axiosInstance';
-import toast from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface User {
   _id: string;
@@ -19,9 +19,9 @@ interface Concern {
   _id: string;
   title: string;
   description: string;
-  raisedBy: User;
-  role: 'student' | 'teacher';
-  status: 'Pending' | 'In Progress' | 'Solved' | 'Rejected';
+  createdBy: User | string;
+  createdByRole: 'Student' | 'Teacher' | 'Admin';
+  status: 'pending' | 'in_progress' | 'solved' | 'rejected';
   feedback?: string;
   createdAt: string;
 }
@@ -44,8 +44,6 @@ const StudentConcernPage: React.FC = () => {
       const accessToken = authState?.accessToken;
 
       if (!userId || !accessToken) {
-        console.log('Missing auth data:', { userId, hasToken: !!accessToken });
-        toast.error('Please log in to view concerns.');
         setIsLoading(false);
         return;
       }
@@ -55,9 +53,8 @@ const StudentConcernPage: React.FC = () => {
         const response = await axios.get<ApiResponse<Concern[]>>(`/api/concerns/user/${userId}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        console.log('Student Concerns:', response.data.data);
         if (response.data.success) {
-          setConcerns(response.data.data);
+          setConcerns(response.data.data || []);
         } else {
           toast.error('Failed to load concerns.');
         }
@@ -84,13 +81,18 @@ const StudentConcernPage: React.FC = () => {
 
     try {
       const response = await axios.post<ApiResponse<Concern>>(
-        '/api/concerns/',
-        { title: newConcern.title, description: newConcern.description, raisedBy: userId, role: 'student' },
+        '/api/concerns',
+        { 
+          title: newConcern.title, 
+          description: newConcern.description, 
+          createdBy: userId, 
+          createdByRole: 'Student' 
+        },
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       if (response.data.success) {
         toast.success('Concern raised successfully.');
-        setConcerns([...concerns, response.data.data]);
+        setConcerns(prev => [...prev, response.data.data]);
         setNewConcern({ title: '', description: '' });
       } else {
         toast.error('Failed to raise concern.');
@@ -101,117 +103,141 @@ const StudentConcernPage: React.FC = () => {
     }
   };
 
-  // Function to determine card background color based on status
-  const getStatusStyles = (status: Concern['status']) => {
+  const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'Solved':
-        return 'border-l-green-500 bg-green-50';
-      case 'Pending':
-        return 'border-l-yellow-500 bg-yellow-50';
-      case 'In Progress':
-        return 'border-l-blue-500 bg-blue-50';
-      case 'Rejected':
-        return 'border-l-red-500 bg-red-50';
-      default:
-        return 'border-l-gray-500 bg-gray-50';
+      case 'pending': return 'Pending';
+      case 'in_progress': return 'In Progress';
+      case 'solved': return 'Solved';
+      case 'rejected': return 'Rejected';
+      default: return status;
     }
   };
 
-
   return (
-    <>
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">My Concerns</h1>
-          <p className="text-gray-600">Manage and track your concerns here.</p>
+    <div className="container mx-auto px-4 py-10 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24">
+      <Toaster position="top-right" />
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+        <div>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Support & Concerns</h1>
+          <p className="text-gray-500 font-medium mt-1">Raise academic or administrative issues.</p>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Raise a New Concern</h2>
-          <form onSubmit={handleRaiseConcern}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Title</label>
-              <input
-                type="text"
-                value={newConcern.title}
-                onChange={(e) => setNewConcern({ ...newConcern, title: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-600 focus:ring-opacity-50"
-                placeholder="Enter concern title"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">Description</label>
-              <textarea
-                value={newConcern.description}
-                onChange={(e) => setNewConcern({ ...newConcern, description: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-600 focus:ring focus:ring-blue-600 focus:ring-opacity-50"
-                rows={4}
-                placeholder="Describe your concern"
-              ></textarea>
-            </div>
-            <button
-              type="submit"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Raise Concern
-            </button>
-          </form>
-        </div>
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-            <p className="mt-4 text-lg text-gray-600">Loading concerns...</p>
-          </div>
-        ) : concerns.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-300"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Concerns Raised</h3>
-            <p className="text-gray-600">You haven't raised any concerns yet.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Concerns</h2>
-            <div className="space-y-4">
-              {concerns.map((concern) => (
-                <div
-                  key={concern._id}
-                  className={`border-l-4 p-4 rounded-r-lg ${getStatusStyles(concern.status)}`}
-                >
-                  <h3 className="text-lg font-semibold text-gray-900">{concern.title}</h3>
-                  <p className="text-gray-600 mt-1">{concern.description}</p>
-                  <div className="mt-2 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-gray-700">
-                        Status: <span className="font-medium">{concern.status}</span>
-                      </p>
-                      {concern.feedback && (
-                        <p className="text-sm text-gray-700">
-                          Feedback: <span className="font-medium">{concern.feedback}</span>
-                        </p>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      Raised on: {new Date(concern.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
-    </>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* Raise Concern Form */}
+        <div className="lg:col-span-1">
+            <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 sticky top-32">
+                <h2 className="text-xl font-black text-gray-900 tracking-tight mb-6 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-sm">✍️</div>
+                    New Request
+                </h2>
+                <form onSubmit={handleRaiseConcern} className="space-y-6">
+                    <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Subject Title</label>
+                        <input
+                            type="text"
+                            value={newConcern.title}
+                            onChange={(e) => setNewConcern({ ...newConcern, title: e.target.value })}
+                            className="w-full h-12 px-5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all font-bold text-gray-700 outline-none shadow-inner"
+                            placeholder="e.g. Schedule Conflict"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Detailed Description</label>
+                        <textarea
+                            value={newConcern.description}
+                            onChange={(e) => setNewConcern({ ...newConcern, description: e.target.value })}
+                            className="w-full px-5 py-4 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all font-bold text-gray-700 outline-none shadow-inner min-h-[150px]"
+                            placeholder="Describe your concern in detail..."
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className="w-full py-4 bg-gray-900 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-gray-200 hover:bg-black transition-all active:scale-95 flex items-center justify-center gap-2 mt-4"
+                    >
+                        Submit Concern
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {/* Existing Concerns List */}
+        <div className="lg:col-span-2 space-y-8">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight px-2 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-sm">📋</div>
+                Resolution History
+            </h2>
+
+            {isLoading ? (
+                <div className="space-y-6">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <div key={i} className="bg-white h-40 rounded-[2.5rem] border border-gray-100 animate-pulse" />
+                    ))}
+                </div>
+            ) : concerns.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 px-4 bg-white rounded-[2.5rem] border border-dashed border-gray-200">
+                    <div className="w-20 h-20 bg-gray-50 rounded-[2rem] flex items-center justify-center text-4xl mb-2">
+                        🛡️
+                    </div>
+                    <h3 className="text-xl font-black text-gray-900">No Concerns Filed</h3>
+                    <p className="text-gray-500 max-w-sm font-medium">Your support history is clear. If you have any issues, use the form to get started.</p>
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    {concerns.map((concern) => {
+                        const styleMap: any = {
+                            'solved': 'bg-emerald-50 border-emerald-100 text-emerald-600',
+                            'pending': 'bg-amber-50 border-amber-100 text-amber-600',
+                            'in_progress': 'bg-blue-50 border-blue-100 text-blue-600',
+                            'rejected': 'bg-rose-50 border-rose-100 text-rose-600'
+                        };
+                        const statusColor = styleMap[concern.status] || 'bg-gray-50 border-gray-100 text-gray-500';
+
+                        return (
+                            <div key={concern._id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 flex flex-col gap-6 hover:shadow-md transition-all group">
+                                <div className="flex justify-between items-start">
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-3">
+                                            <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border ${statusColor}`}>
+                                                {getStatusLabel(concern.status)}
+                                            </span>
+                                            <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">
+                                                ID: {concern._id ? concern._id.slice(-6) : 'NEW'}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-xl font-black text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                                            {concern.title}
+                                        </h3>
+                                    </div>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                                        🗓️ {concern.createdAt ? new Date(concern.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pending'}
+                                    </span>
+                                </div>
+
+                                <p className="text-sm font-medium text-gray-500 leading-relaxed italic border-l-4 border-gray-50 pl-6 py-2">
+                                    "{concern.description}"
+                                </p>
+
+                                {concern.feedback && (
+                                    <div className="bg-blue-50/50 rounded-2xl p-5 border border-blue-50 flex items-start gap-4">
+                                        <div className="text-blue-400 text-lg">💡</div>
+                                        <div>
+                                            <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest block mb-1">Admin Feedback</span>
+                                            <p className="text-xs font-bold text-blue-900 leading-relaxed">
+                                                {concern.feedback}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+      </div>
+    </div>
   );
 };
 

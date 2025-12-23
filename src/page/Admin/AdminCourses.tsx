@@ -7,6 +7,14 @@ import ViewCourseModal from "../../components/admin/courses/ViewCourseModal";
 import DeleteCourseModal from "../../components/admin/courses/DeleteCourseModal";
 import Pagination from "../../components/admin/users/Pagination";
 import { toast } from 'react-hot-toast';
+import { 
+  MdSchool, 
+  MdAdd, 
+  MdSearch, 
+  MdErrorOutline,
+  MdFilterList,
+  MdLayers
+} from 'react-icons/md';
 
 // Interface definitions
 interface Department {
@@ -176,81 +184,105 @@ const AdminCourses: React.FC = () => {
     setSearchTerm(e.target.value);
   };
 
-
-
   return (
-    <>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-800">Course Management</h1>
-          <p className="text-sm sm:text-base text-gray-500">Manage academic courses</p>
+    <div className="max-w-[1600px] mx-auto px-4 py-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Branded Header Area */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-10 px-2">
+        <div className="space-y-4">
+           <div className="flex items-center gap-3">
+              <div className="p-3 bg-gray-900 rounded-2xl text-blue-400 shadow-2xl shadow-blue-500/20">
+                 <MdSchool className="text-2xl" />
+              </div>
+              <div className="h-6 w-px bg-gray-200" />
+              <div className="flex items-center gap-2">
+                 <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">Program Registry</span>
+                 <div className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black border border-blue-100">{courses.length} Modules</div>
+              </div>
+           </div>
+           <div>
+              <h1 className="text-5xl font-black text-gray-900 tracking-tight leading-none">Educational Courses</h1>
+              <p className="text-gray-400 font-bold mt-2">Manage academic programs, credit structures, and syllabus nodes.</p>
+           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center">
-            <label htmlFor="rowsPerPage" className="text-sm text-gray-600 mr-2">
-              Rows:
-            </label>
-            <select
-              id="rowsPerPage"
-              value={coursesPerPage}
-              onChange={handleRowsPerPageChange}
-              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
-            >
-              <option value={5}>5</option>
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
-          <button
-            onClick={handleAdd}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-          >
-            + Add Course
-          </button>
+        
+        <div className="flex items-center gap-4">
+           <div className="bg-white px-8 py-5 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-6 group">
+              <div className="flex flex-col">
+                 <label htmlFor="rowsPerPage" className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1.5 px-1">Network Load</label>
+                 <select
+                   id="rowsPerPage"
+                   value={coursesPerPage}
+                   onChange={handleRowsPerPageChange}
+                   className="bg-transparent border-none text-xs font-black text-gray-900 focus:ring-0 cursor-pointer p-0"
+                 >
+                   <option value={5}>05 Modules</option>
+                   <option value={10}>10 Modules</option>
+                   <option value={20}>20 Modules</option>
+                   <option value={50}>50 Modules</option>
+                 </select>
+              </div>
+              <div className="w-px h-8 bg-gray-100" />
+              <button
+                onClick={handleAdd}
+                className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black shadow-2xl shadow-indigo-200 hover:scale-105 transition-all active:scale-95 text-xs truncate"
+              >
+                <MdAdd className="text-lg" />
+                New Module
+              </button>
+           </div>
         </div>
       </div>
 
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Search courses..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          className="w-full max-w-md px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Floating Filter Hub */}
+      <div className="px-2">
+         <div className="bg-white/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col md:flex-row gap-6 relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors"></div>
+            <div className="flex-1 relative">
+               <MdSearch className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl group-hover:text-indigo-500 transition-colors" />
+               <input
+                 type="text"
+                 placeholder="Search by Course Name, Code, or Faculty Origin..."
+                 value={searchTerm}
+                 onChange={handleSearchChange}
+                 className="w-full pl-16 pr-8 py-5 bg-gray-50/50 border-gray-100 rounded-3xl text-sm font-bold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
+               />
+            </div>
+         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
+      {/* Data Visualization Grid */}
+      <div className="px-2">
+         {error && (
+           <div className="bg-rose-50 border border-rose-100 p-6 mb-10 rounded-[2rem] flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+             <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-rose-500 shadow-sm">
+                <MdErrorOutline size={24} />
+             </div>
+             <p className="text-sm font-bold text-rose-700 tracking-tight">{error}</p>
+           </div>
+         )}
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : (
-        <>
-          <CourseTable
+         <CourseTable
             courses={currentCourses}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onView={handleView}
-          />
-          
-          {filteredCourses.length > 0 && (
-            <div className="mt-6">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
-        </>
-      )}
+            loading={loading}
+         />
+         
+         {!loading && filteredCourses.length > 0 && (
+           <div className="mt-12 bg-white/50 backdrop-blur-sm p-8 rounded-[2.5rem] border border-gray-100 shadow-sm">
+             <Pagination
+               currentPage={currentPage}
+               totalPages={totalPages}
+               totalItems={filteredCourses.length}
+               itemsPerPage={coursesPerPage}
+               onPageChange={setCurrentPage}
+               onItemsPerPageChange={setCoursesPerPage}
+               variant="minimal"
+             />
+           </div>
+         )}
+      </div>
 
       {modalType === 'add' && (
         <AddCourseModal
@@ -280,7 +312,7 @@ const AdminCourses: React.FC = () => {
           onDeleteSuccess={handleConfirmDelete}
         />
       )}
-    </>
+    </div>
   );
 };
 

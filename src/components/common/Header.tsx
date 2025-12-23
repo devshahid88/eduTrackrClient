@@ -96,7 +96,7 @@ const Header: React.FC<HeaderProps> = ({ role, onMenuClick }) => {
   }
 
   return (
-    <header className="flex justify-between items-center px-6 bg-white shadow-sm h-16 z-10 relative">
+    <header className="sticky top-0 flex justify-between items-center px-6 bg-white shadow-sm h-16 z-30">
       {/* Left Section */}
       <div className="flex items-center">
         <button onClick={onMenuClick} className="lg:hidden mr-4 text-gray-500 hover:text-gray-700">

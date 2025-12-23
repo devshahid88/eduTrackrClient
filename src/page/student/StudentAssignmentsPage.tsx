@@ -184,6 +184,38 @@ const StudentAssignmentsPage: React.FC = () => {
     }
   };
 
+  // Handle submission deletion
+  const handleDeleteSubmission = async (assignmentId: string) => {
+    try {
+      const response = await axios.delete(
+        `/api/assignments/${assignmentId}/submission/${studentId}`,
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+
+      if (response.data.success) {
+        setAssignments((prev) =>
+          prev.map((assignment) =>
+            assignment._id === assignmentId
+              ? {
+                  ...assignment,
+                  hasSubmitted: false,
+                  submissions: [],
+                }
+              : assignment
+          )
+        );
+        toast.success('Submission deleted successfully');
+      } else {
+        toast.error(response.data.message || 'Failed to delete submission');
+      }
+    } catch (error: any) {
+      console.error('Error deleting submission:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete submission');
+    }
+  };
+
   // Open assignment detail modal
   const handleViewAssignment = (assignment: any) => {
     setSelectedAssignment(assignment);
@@ -280,13 +312,23 @@ const StudentAssignmentsPage: React.FC = () => {
 
 
   return (
-    <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6">
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Assignments</h1>
-          <p className="text-gray-600">View and submit your course assignments</p>
+    <div className="container mx-auto px-4 py-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+        <div>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Assignments</h1>
+          <p className="text-gray-500 font-medium mt-1">Track your progress and submit pending tasks.</p>
         </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-white px-5 py-3 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-3">
+            <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Total</span>
+            <span className="text-lg font-black text-blue-600 leading-none">{filteredAssignments.length}</span>
+          </div>
+        </div>
+      </div>
 
+      {/* Filters Section */}
+      <div className="bg-white/50 backdrop-blur-sm p-4 rounded-[2.5rem] border border-gray-100 shadow-sm">
         <AssignmentFilters
           filters={filters}
           setFilters={setFilters}
@@ -294,32 +336,35 @@ const StudentAssignmentsPage: React.FC = () => {
           departments={uniqueDepartments}
           isStudent={true}
         />
+      </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="bg-white p-6 rounded-lg shadow-md animate-pulse h-48"
-              ></div>
+      {/* Content Section */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="bg-white h-64 rounded-[2.5rem] border border-gray-100 animate-pulse"
+            ></div>
+          ))}
+        </div>
+      ) : filteredAssignments.length > 0 ? (
+        <div className="space-y-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-2">
+            {currentAssignments.map((assignment) => (
+              <AssignmentCard
+                key={assignment._id}
+                assignment={assignment}
+                onView={() => handleViewAssignment(assignment)}
+                onStartSubmission={() => handleStartSubmission(assignment)}
+                onSubmit={() => handleStartSubmission(assignment)}
+                className="hover:-translate-y-2 transition-transform duration-300"
+                showActions={true}
+              />
             ))}
           </div>
-        ) : filteredAssignments.length > 0 ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {currentAssignments.map((assignment) => (
-                <AssignmentCard
-                  key={assignment._id}
-                  assignment={assignment}
-                  onView={() => handleViewAssignment(assignment)}
-                  onStartSubmission={() => handleStartSubmission(assignment)}
-                  onSubmit={() => handleStartSubmission(assignment)} // Required prop
-                  className="bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
-                  showActions={true}
-                  compact={false}
-                />
-              ))}
-            </div>
+          
+          <div className="flex justify-center pt-8">
             <Pagination
               totalItems={totalItems}
               itemsPerPage={itemsPerPage}
@@ -328,14 +373,25 @@ const StudentAssignmentsPage: React.FC = () => {
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
-          </>
-        ) : (
-          <div className="text-center py-12">
-            <h2 className="text-xl font-semibold">No assignments found.</h2>
-            <p className="text-gray-500 mt-2">Try adjusting your filters or check back later.</p>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 px-4">
+          <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center text-5xl mb-4">
+            📚
+          </div>
+          <h2 className="text-2xl font-black text-gray-900">No Assignments Found</h2>
+          <p className="text-gray-500 max-w-sm font-medium">
+            We couldn't find any assignments matching your current filters. Try relaxing your search criteria.
+          </p>
+          <button 
+            onClick={() => setFilters({ course: 'all', department: 'all', status: 'all', sortBy: 'dueDate' })}
+            className="mt-6 px-8 py-3 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-200 hover:scale-105 transition-transform"
+          >
+            Clear All Filters
+          </button>
+        </div>
+      )}
 
       {/* Modals */}
       {selectedAssignment && (
@@ -345,6 +401,7 @@ const StudentAssignmentsPage: React.FC = () => {
             onClose={() => setIsDetailModalOpen(false)}
             assignment={selectedAssignment}
             onStartSubmission={() => handleStartSubmission(selectedAssignment)}
+            onDeleteSubmission={handleDeleteSubmission}
           />
           <SubmissionModal
             isOpen={isSubmissionModalOpen}
@@ -354,7 +411,7 @@ const StudentAssignmentsPage: React.FC = () => {
           />
         </>
       )}
-    </>
+    </div>
   );
 };
 

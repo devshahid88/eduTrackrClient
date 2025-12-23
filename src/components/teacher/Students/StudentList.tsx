@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
+import { MdSearch, MdPerson, MdEmail, MdSchool, MdArrowForward } from 'react-icons/md';
 import StudentDetails from './StudentDetails';
 import { RootState } from '../../../redux/store';
 
 const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSearchQuery }) => {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const authState = useSelector((state:RootState) => state.auth);
+  const authState = useSelector((state: RootState) => state.auth);
   const accessToken = authState?.accessToken;
 
   const filteredStudents = students.filter(student =>
@@ -15,7 +16,6 @@ const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSea
   );
 
   const handleViewDetails = (studentId) => {
-    console.log(studentId);
     setSelectedStudentId(studentId);
   };
 
@@ -25,122 +25,121 @@ const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSea
 
   if (loading) {
     return (
-      <div className="container mx-auto">
-        <p className="text-gray-600">Loading...</p>
+      <div className="grid grid-cols-1 gap-8 px-2">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className="bg-white h-24 rounded-[2.5rem] border border-gray-100 animate-pulse"></div>
+        ))}
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto">
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {selectedStudentId ? (
-        <>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-gray-900">Student Details</h1>
+        <div className="space-y-6">
+          <div className="flex items-center gap-4 px-2">
             <button
               onClick={handleBack}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="flex items-center justify-center p-3 bg-white border border-gray-100 rounded-2xl text-gray-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm active:scale-95"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-              </svg>
-              Back to Students
+              <MdArrowForward className="rotate-180 text-xl" />
             </button>
+            <div>
+               <h1 className="text-3xl font-black text-gray-900 tracking-tight">Student Insight</h1>
+               <p className="text-gray-500 font-medium tracking-tight text-sm">Deep dive into performance and records.</p>
+            </div>
           </div>
           <StudentDetails studentId={selectedStudentId} accessToken={accessToken} />
-        </>
+        </div>
       ) : (
         <>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-gray-900">Students - {teacherDepartment}</h1>
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search students..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-              <svg
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                width="20"
-                height="20"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+          {/* Header & Search */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+            <div>
+              <h1 className="text-4xl font-black text-gray-900 tracking-tight">Student Directory</h1>
+              <p className="text-gray-500 font-medium tracking-tight mt-1">Managing {teacherDepartment || "Faculty"} roster.</p>
+            </div>
+            
+            <div className="relative group">
+               <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                  <MdSearch className="text-2xl text-gray-300" />
+               </div>
+               <input
+                 type="text"
+                 placeholder="Search name, email or department..."
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 className="w-full md:w-96 pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[2rem] shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-gray-700 placeholder:text-gray-300"
+               />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          {/* Table Container */}
+          <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden min-h-[400px]">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <table className="min-w-full divide-y divide-gray-50">
+                <thead>
+                  <tr className="bg-gray-50/50">
+                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Full Identity</th>
+                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Contact Node</th>
+                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Department</th>
+                    <th className="px-8 py-6 text-left text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Level</th>
+                    <th className="px-8 py-6 text-right text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Action</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-100">
                   {filteredStudents.map((student) => (
-                    <tr key={student._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            {student.profileImage ? (
-                              <img
-                                className="h-10 w-10 rounded-full object-cover"
-                                src={student.profileImage}
-                                alt={`${student.firstname} ${student.lastname}`}
-                              />
-                            ) : (
-                              <img
-                                className="h-10 w-10 rounded-full"
-                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstname + ' ' + student.lastname)}&background=0D8ABC&color=fff`}
-                                alt=""
-                              />
-                            )}
+                    <tr key={student._id} className="group hover:bg-gray-50/50 transition-colors">
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0 relative">
+                            <img
+                              className="h-12 w-12 rounded-2xl object-cover ring-2 ring-gray-50 shadow-sm group-hover:scale-110 transition-transform duration-300"
+                              src={student.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(student.firstname + ' ' + student.lastname)}&background=f1f5f9&color=3b82f6&size=128&bold=true`}
+                              alt={student.firstname}
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
                           </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{student.firstname} {student.lastname}</div>
+                          <div>
+                            <div className="text-sm font-black text-gray-900 leading-none">{student.firstname} {student.lastname}</div>
+                            <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1.5">ID: {student._id.slice(-6)}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{student.email}</div>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                         <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
+                            <MdEmail className="text-blue-400 text-lg" />
+                            {student.email}
+                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{student.departmentName}</div>
+                      <td className="px-8 py-6 whitespace-nowrap">
+                         <div className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                            <MdSchool className="text-emerald-400 text-lg" />
+                            {student.departmentName}
+                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                          {student.class || 'N/A'}
+                      <td className="px-8 py-6 whitespace-nowrap">
+                        <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
+                           Grade {student.class || 'N/A'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-8 py-6 whitespace-nowrap text-right">
                         <button
                           onClick={() => handleViewDetails(student._id)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="px-6 py-2.5 bg-gray-50 border border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all active:scale-95 shadow-sm"
                         >
-                          View Details
+                          View Profile
                         </button>
                       </td>
                     </tr>
                   ))}
                   {filteredStudents.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">
-                        No students found.
+                      <td colSpan={5} className="px-8 py-20 text-center">
+                         <div className="flex flex-col items-center opacity-30">
+                            <MdPerson className="text-6xl mb-4" />
+                            <p className="text-sm font-black uppercase tracking-widest">No matching students</p>
+                         </div>
                       </td>
                     </tr>
                   )}

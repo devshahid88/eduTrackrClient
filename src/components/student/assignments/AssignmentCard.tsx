@@ -50,147 +50,110 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   };
   
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 ${compact ? 'p-4' : 'p-6'} ${className}`}>
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex-1 min-w-0">
-          <h3 className={`font-semibold text-gray-900 mb-1 ${compact ? 'text-base' : 'text-lg'} line-clamp-2`}>
-            {assignment.title}
-          </h3>
-          <div className="flex items-center text-sm text-gray-600 space-x-2">
-            {assignment.courseName && (
-              <span>{assignment.courseName}</span>
-            )}
-            {assignment.courseName && assignment.departmentName && (
-              <span>•</span>
-            )}
-            {assignment.departmentName && (
-              <span>{assignment.departmentName}</span>
-            )}
+    <div className={`bg-white rounded-[2.5rem] border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full overflow-hidden ${className}`}>
+      {/* Visual Header */}
+      <div className={`h-2 text-white overflow-hidden flex`}>
+          <div className={`flex-1 ${
+              assignmentStatus.variant === 'success' ? 'bg-emerald-500' :
+              assignmentStatus.variant === 'danger' ? 'bg-red-500' :
+              assignmentStatus.variant === 'warning' ? 'bg-amber-500' :
+              'bg-blue-500'
+          }`} />
+      </div>
+
+      <div className="p-8 flex flex-col flex-1">
+          {/* Top Row: Meta & Status */}
+          <div className="flex items-start justify-between mb-6 gap-4">
+              <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 truncate max-w-[150px]">
+                      {assignment.courseName || 'General'}
+                  </span>
+                  <StatusBadge />
+              </div>
+              <div className="flex -space-x-2">
+                  <div className="w-10 h-10 rounded-2xl bg-gray-50 border-4 border-white flex items-center justify-center text-xs font-black text-gray-400">
+                      {teacherName.charAt(0)}
+                  </div>
+              </div>
           </div>
-        </div>
-        <StatusBadge />
-      </div>
 
-      {/* Description */}
-      {!compact && (
-        <p className="text-gray-700 text-sm mb-4 line-clamp-3">
-          {assignment.description}
-        </p>
-      )}
-
-      {/* Assignment Details */}
-      <div className={`space-y-2 mb-4 ${compact ? 'text-xs' : 'text-sm'}`}>
-        {/* Teacher */}
-        <div className="flex items-center text-gray-600">
-          <User className="w-4 h-4 mr-2 flex-shrink-0" />
-          <span className="truncate">{teacherName}</span>
-        </div>
-
-        {/* Points */}
-        <div className="flex items-center text-gray-600">
-          <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
-          <span>{assignment.maxMarks || assignment.maxPoints || 0} points</span>
-        </div>
-
-        {/* Attachments */}
-        {assignment.attachments && assignment.attachments.length > 0 && (
-          <div className="flex items-center text-gray-600">
-            <svg className="w-4 h-4 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-            </svg>
-            <span>{assignment.attachments.length} attachment{assignment.attachments.length !== 1 ? 's' : ''}</span>
+          {/* Title & Description */}
+          <div className="mb-6">
+              <h3 className="text-xl font-black text-gray-900 tracking-tight leading-tight mb-3 line-clamp-2">
+                  {assignment.title}
+              </h3>
+              <p className="text-sm font-medium text-gray-500 line-clamp-3 leading-relaxed">
+                  {assignment.description || 'No description provided.'}
+              </p>
           </div>
-        )}
-      </div>
 
-      {/* Due Date */}
-      <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
-        <div className="flex items-center text-sm">
-          <Calendar className="w-4 h-4 mr-2 text-gray-500" />
-          <span className="font-medium text-gray-700">Due: </span>
-          <span className="text-gray-600 ml-1">
-            {dueDate.toLocaleDateString(undefined, { 
-              month: 'short', 
-              day: 'numeric',
-              year: dueDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-            })} at{' '}
-            {dueDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-        </div>
-      </div>
-
-      {/* Time Remaining */}
-      <div className="mb-4">
-        <div className={`text-sm font-medium ${
-          assignmentStatus.variant === 'success' ? 'text-green-600' :
-          assignmentStatus.variant === 'danger' ? 'text-red-600' :
-          assignmentStatus.variant === 'warning' ? 'text-yellow-600' :
-          'text-blue-600'
-        }`}>
-          {timeRemainingText}
-        </div>
-      </div>
-
-      {/* Submission Info */}
-      {assignment.submissions && assignment.submissions.length > 0 && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <div className="flex items-center text-sm text-green-700">
-            <BookOpen className="w-4 h-4 mr-2" />
-            <span className="font-medium">Submitted</span>
+          {/* Details Grid */}
+          <div className="mt-auto pt-6 border-t border-gray-50 grid grid-cols-2 gap-4">
+              <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-2">Max Score</span>
+                  <div className="flex items-center gap-2">
+                       <FileText className="w-3.5 h-3.5 text-blue-400" />
+                       <span className="text-sm font-black text-gray-800">{assignment.maxMarks || 100}</span>
+                  </div>
+              </div>
+              <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-2">Deadline</span>
+                  <div className="flex items-center gap-2">
+                       <Clock className="w-3.5 h-3.5 text-amber-400" />
+                       <span className="text-sm font-black text-gray-800">
+                           {dueDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                       </span>
+                  </div>
+              </div>
           </div>
-          {assignment.submissions[0]?.grade !== undefined && (
-            <div className="mt-1 text-sm text-green-600">
-              Grade: {assignment.submissions[0].grade}/{assignment.maxMarks || assignment.maxPoints || 0}
-            </div>
-          )}
-          {assignment.submissions[0]?.feedback && (
-            <div className="mt-1 text-sm text-green-600">
-              Feedback available
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Actions */}
-      {showActions && (
-        <div className="flex gap-2">
-          <button
-            onClick={() => onView(assignment)}
-            className={`flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors duration-200 ${compact ? 'py-1.5 px-3 text-xs' : 'py-2 px-4 text-sm'}`}
-            aria-label={`View details for ${assignment.title}`}
-          >
-            View Details
-          </button>
-
-          {canSubmitAssignment(assignment) && (
-            <button
-              onClick={() => onSubmit(assignment)}
-              disabled={submissionConfig.disabled}
-              className={`flex-1 font-medium rounded-lg transition-colors duration-200 ${compact ? 'py-1.5 px-3 text-xs' : 'py-2 px-4 text-sm'} ${
-                submissionConfig.variant === 'primary' 
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50'
-                  : submissionConfig.variant === 'danger'
-                  ? 'bg-red-600 hover:bg-red-700 text-white disabled:opacity-50'
-                  : 'bg-green-600 hover:bg-green-700 text-white disabled:opacity-50'
-              } disabled:cursor-not-allowed`}
-              aria-label={`${submissionConfig.text} for ${assignment.title}`}
-            >
-              {submissionConfig.text}
-            </button>
-          )}
-
+          {/* Submission Banner (If submitted) */}
           {assignment.submissions && assignment.submissions.length > 0 && (
-            <button
-              onClick={() => onView(assignment)}
-              className={`flex-1 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors duration-200 ${compact ? 'py-1.5 px-3 text-xs' : 'py-2 px-4 text-sm'}`}
-              aria-label={`View submission for ${assignment.title}`}
-            >
-              View Submission
-            </button>
+            <div className="mt-6 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-50 flex items-center justify-between">
+                <div>
+                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest block leading-none mb-1">Status</span>
+                    <span className="text-xs font-bold text-emerald-900">Successfully Submitted</span>
+                </div>
+                {assignment.submissions && assignment.submissions[0]?.grade !== undefined && (
+                    <div className="bg-emerald-500 text-white text-[10px] font-black px-2 py-1 rounded-lg">
+                        {assignment.submissions[0].grade} / {assignment.maxMarks}
+                    </div>
+                )}
+            </div>
           )}
-        </div>
-      )}
+
+          {/* Footer Actions */}
+          {showActions && (
+            <div className="flex gap-4 mt-8">
+              <button
+                onClick={() => onView(assignment)}
+                className="flex-1 py-3 bg-white border border-gray-100 text-gray-700 font-bold text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-colors"
+              >
+                Details
+              </button>
+
+              {canSubmitAssignment(assignment) && (
+                <button
+                  onClick={() => onSubmit(assignment)}
+                  className={`flex-1 py-3 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg transition-all active:scale-95 ${
+                    submissionConfig.variant === 'danger' ? 'bg-red-500 shadow-red-100' : 'bg-blue-600 shadow-blue-100'
+                  }`}
+                >
+                  {submissionConfig.text}
+                </button>
+              )}
+              
+              {assignment.submissions && assignment.submissions.length > 0 && (
+                <button
+                  onClick={() => onView(assignment)}
+                  className="flex-1 py-3 bg-emerald-500 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-emerald-100 transition-all active:scale-95"
+                >
+                  Feedback
+                </button>
+              )}
+            </div>
+          )}
+      </div>
     </div>
   );
 };

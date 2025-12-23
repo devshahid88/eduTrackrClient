@@ -78,28 +78,45 @@ const VideoCall = ({ channelName, onLeave }: { channelName: string; onLeave: () 
         if (!APP_ID) throw new Error('Agora App ID is not configured.');
         if (client.connectionState !== 'DISCONNECTED') await client.leave();
 
-        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        let tracks: [IMicrophoneAudioTrack, ICameraVideoTrack] | null = null;
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          tracks = await Promise.all([
+            AgoraRTC.createMicrophoneAudioTrack({ encoderConfig: 'music_standard' }),
+            AgoraRTC.createCameraVideoTrack({ encoderConfig: '480p_1' })
+          ]);
+          setLocalTracks({ audioTrack: tracks[0], videoTrack: tracks[1] });
+          if (localVideoRef.current && tracks[1]) tracks[1].play(localVideoRef.current);
+        } catch (mediaError: any) {
+          console.warn('Media access failed, joining as listener only:', mediaError);
+          toast.error('Could not access camera/mic. Joining as listener.');
+          // We continue without tracks
+        }
+
         joinPromiseRef.current = client.join(APP_ID, channelName, token, userId);
         await joinPromiseRef.current;
 
-        const [audioTrack, videoTrack] = await Promise.all([
-          AgoraRTC.createMicrophoneAudioTrack({ encoderConfig: 'music_standard' }),
-          AgoraRTC.createCameraVideoTrack({ encoderConfig: '480p_1' })
-        ]);
-
-        setLocalTracks({ videoTrack, audioTrack });
-        if (localVideoRef.current && videoTrack) videoTrack.play(localVideoRef.current);
-
-        if (client.connectionState === 'CONNECTED') await client.publish([audioTrack, videoTrack]);
-        else throw new Error(`Cannot publish: invalid connection state ${client.connectionState}`);
+        if (client.connectionState === 'CONNECTED' && tracks) {
+          await client.publish(tracks.filter(Boolean) as any);
+        }
 
         setIsJoined(true);
         setIsLoading(false);
       } catch (error: any) {
         console.error('Error joining channel:', error);
-        setError(error.message);
+        
+        let errorMsg = error.message;
+        if (error.name === 'NotAllowedError') {
+          errorMsg = 'Camera/Microphone access denied. Please check your browser permissions.';
+        } else if (error.name === 'NotFoundError') {
+          errorMsg = 'No camera or microphone found. Please connect a device.';
+        } else if (error.name === 'NotReadableError') {
+           errorMsg = 'Camera/Microphone is being used by another application.';
+        }
+
+        setError(errorMsg);
         setIsLoading(false);
-        toast.error(`Failed to join call: ${error.message}`);
+        toast.error(`Failed to join call: ${errorMsg}`);
       }
     };
 

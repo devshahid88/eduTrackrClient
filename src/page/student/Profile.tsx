@@ -144,172 +144,155 @@ const StudentProfile = () => {
 
 
   return (
-    <>
+    <div className="container mx-auto px-4 py-10 space-y-12 animate-in fade-in duration-700 pb-24">
       <Toaster position="top-right" />
-      <div className="p-4 md:p-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-[rgba(53,130,140,0.8)] to-[rgba(53,130,140,1)] h-32 md:h-40 relative">
-              <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-                <div className="relative">
-                  <img
-                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl"
-                    src={editProfileImage || 'https://i.pravatar.cc/150'}
-                    alt="Student Profile"
-                  />
-                  {isEditing && (
-                    <label className="absolute bottom-2 right-2 bg-[rgba(53,130,140,0.9)] text-white p-2 rounded-full cursor-pointer hover:bg-[rgba(53,130,140,1)] transition-colors shadow-lg">
-                      <MdCameraAlt size={16} />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-              </div>
+      
+      {/* Header Profile Section */}
+      <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm overflow-hidden flex flex-col items-center p-12 relative">
+          {/* Decorative background accent */}
+          <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-[0.03]" />
+          
+          <div className="relative mb-8">
+            <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden border-8 border-gray-50 shadow-xl group">
+              <img
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                src={editProfileImage || 'https://i.pravatar.cc/150'}
+                alt="Student Profile"
+              />
+              {isEditing && (
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <MdCameraAlt className="text-white w-8 h-8" />
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                </label>
+              )}
             </div>
-            <div className="pt-20 pb-6 px-6 text-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
-                {editFirstname} {editLastname}
-              </h1>
-              <p className="text-gray-600 mb-4">{editEmail}</p>
-              <div className="flex justify-center space-x-3">
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={handleUpdate}
-                      disabled={updating}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
-                    >
-                      <MdSave size={18} />
-                      <span>{updating ? 'Saving...' : 'Save Changes'}</span>
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      disabled={updating}
-                      className="flex items-center space-x-2 bg-gray-500 hover:bg-gray-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200"
-                    >
-                      <MdCancel size={18} />
-                      <span>Cancel</span>
-                    </button>
-                  </>
+          </div>
+
+          <div className="text-center space-y-2">
+            <h1 className="text-4xl font-black text-gray-900 tracking-tight leading-none">
+              {editFirstname} {editLastname}
+            </h1>
+            <p className="text-gray-500 font-bold tracking-widest uppercase text-[10px]">
+              Student Portal Profile
+            </p>
+          </div>
+
+          <div className="mt-10 flex gap-4">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleUpdate}
+                  disabled={updating}
+                  className="px-8 py-3 bg-blue-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
+                >
+                  <MdSave className="w-4 h-4" />
+                  {updating ? 'Saving...' : 'Save Profile'}
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={updating}
+                  className="px-8 py-3 bg-white border border-gray-100 text-gray-500 font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-gray-50 transition-all active:scale-95 flex items-center gap-2"
+                >
+                  <MdCancel className="w-4 h-4" />
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-10 py-4 bg-gray-900 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-gray-200 hover:bg-black transition-all active:scale-95 flex items-center gap-2"
+              >
+                <MdEdit className="w-4 h-4 text-blue-400" />
+                Edit Account Settings
+              </button>
+            )}
+          </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        {/* Personal Details */}
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10 space-y-8">
+            <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+                    <MdPerson className="w-6 h-6" />
+                </div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Identity Details</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ProfileField label="First Name" value={editFirstname} isEditing={isEditing} onChange={setEditFirstname} />
+                <ProfileField label="Last Name" value={editLastname} isEditing={isEditing} onChange={setEditLastname} />
+            </div>
+            <ProfileField label="Email Address" value={editEmail} isEditing={isEditing} onChange={setEditEmail} />
+        </div>
+
+        {/* Academic Details */}
+        <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-10 space-y-8">
+            <div className="flex items-center gap-4 mb-2">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <MdSchool className="w-6 h-6" />
+                </div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Academic Profile</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Department</span>
+                  <div className="px-5 py-4 bg-gray-50 rounded-2xl font-bold text-gray-800 border border-transparent italic">
+                      {student.departmentName || 'Unassigned'}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Curriculum Class</span>
+                  <div className="px-5 py-4 bg-gray-50 rounded-2xl font-bold text-gray-800 border border-transparent italic">
+                      {student.class || 'Level 1'}
+                  </div>
+                </div>
+            </div>
+
+            <div>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-4 px-1">Enrollment Modules</span>
+              <div className="space-y-3">
+                {student.courses && student.courses.length > 0 ? (
+                    student.courses.map((course: any) => (
+                      <div key={course.id} className="flex items-center justify-between px-6 py-4 bg-gray-50 rounded-2xl group hover:bg-white hover:border-blue-100 border border-transparent transition-all">
+                        <span className="font-black text-gray-700 tracking-tight">{course.name}</span>
+                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50 px-2 py-1 rounded-lg">
+                          {course.code}
+                        </span>
+                      </div>
+                    ))
                 ) : (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center space-x-2 bg-[rgba(53,130,140,0.9)] hover:bg-[rgba(53,130,140,1)] text-white px-6 py-2 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
-                  >
-                    <MdEdit size={18} />
-                    <span>Edit Profile</span>
-                  </button>
+                  <p className="text-center py-6 text-gray-400 font-bold text-sm bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+                    No active enrollments found.
+                  </p>
                 )}
               </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <MdPerson className="mr-2 text-[rgba(53,130,140,0.9)]" />
-                Personal Information
-              </h2>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">First Name</label>
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        value={editFirstname}
-                        onChange={(e) => setEditFirstname(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(53,130,140,0.9)] focus:border-transparent transition-all"
-                        placeholder="Enter first name"
-                      />
-                    ) : (
-                      <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{editFirstname}</p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 mb-2">Last Name</label>
-                    {isEditing ? (
-                      <input 
-                        type="text" 
-                        value={editLastname}
-                        onChange={(e) => setEditLastname(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(53,130,140,0.9)] focus:border-transparent transition-all"
-                        placeholder="Enter last name"
-                      />
-                    ) : (
-                      <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{editLastname}</p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center">
-                    <MdEmail className="mr-1" />
-                    Email Address
-                  </label>
-                  {isEditing ? (
-                    <input 
-                      type="email" 
-                      value={editEmail}
-                      onChange={(e) => setEditEmail(e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[rgba(53,130,140,0.9)] focus:border-transparent transition-all"
-                      placeholder="Enter email address"
-                    />
-                  ) : (
-                    <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{editEmail}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-xl shadow-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
-                <MdSchool className="mr-2 text-[rgba(53,130,140,0.9)]" />
-                Academic Information
-              </h2>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2">Department</label>
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{student.departmentName || 'Not assigned'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center">
-                    <MdClass className="mr-1" />
-                    Class
-                  </label>
-                  <p className="p-3 bg-gray-50 rounded-lg text-gray-800">{student.class || 'Not assigned'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-600 mb-2 flex items-center">
-                    <MdBook className="mr-1" />
-                    Enrolled Courses
-                  </label>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    {student.courses && student.courses.length > 0 ? (
-                      <div className="space-y-2">
-                        {student.courses.map((course) => (
-                          <div key={course.id} className="flex items-center justify-between bg-white p-2 rounded">
-                            <span className="font-medium text-gray-800">{course.name}</span>
-                            <span className="text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded">
-                              {course.code}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-600 text-center py-4">No courses assigned yet</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
+
+const ProfileField = ({ label, value, isEditing, onChange }: any) => (
+  <div>
+    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">
+      {label}
+    </label>
+    {isEditing ? (
+      <input 
+        type="text" 
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full h-12 px-5 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:border-blue-100 focus:ring-4 focus:ring-blue-50/50 transition-all font-bold text-gray-700 outline-none shadow-inner"
+      />
+    ) : (
+      <div className="px-5 py-4 bg-gray-50 rounded-2xl font-bold text-gray-800 border border-transparent shadow-inner">
+        {value}
+      </div>
+    )}
+  </div>
+);
 
 export default StudentProfile;

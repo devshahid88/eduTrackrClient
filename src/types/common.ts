@@ -16,6 +16,7 @@ export interface BaseEntity {
 // Enhanced User Interface (Fixed)
 export interface User {
   id: string;
+  _id?: string;           // Added: For MongoDB responses
   username: string;
   name?: string;          // Added: User's display name
   email?: string;

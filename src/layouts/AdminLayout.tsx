@@ -10,7 +10,7 @@ const AdminLayout: React.FC = () => {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
-    <div className="flex min-h-screen bg-gray-50 overflow-x-hidden">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div
@@ -22,7 +22,7 @@ const AdminLayout: React.FC = () => {
       {/* Sidebar - Fixed on desktop/mobile */}
       <aside
         className={`
-          fixed top-0 left-0 bottom-0 z-50 w-64 bg-white shadow-lg
+          fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg
           transform transition-transform duration-300
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
@@ -32,10 +32,10 @@ const AdminLayout: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen ml-0 lg:ml-64">
+      <div className="flex-1 flex flex-col h-full ml-0 lg:ml-64 relative overflow-hidden">
         <Header role="admin" onMenuClick={toggleSidebar} />
         
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto bg-gray-50">
+        <main className="flex-1 p-4 lg:p-8 pb-12 overflow-y-auto bg-gray-50 no-scrollbar">
           <Outlet />
         </main>
       </div>

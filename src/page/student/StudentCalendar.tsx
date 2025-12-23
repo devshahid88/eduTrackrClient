@@ -57,48 +57,60 @@ const StudentCalendar: React.FC = () => {
   }, [authState]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-100">
-            <MdCalendarToday className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Weekly Calendar</h1>
-            <p className="text-sm text-gray-500 font-medium">Your academic timetable at a glance</p>
-          </div>
+    <div className="container mx-auto px-4 py-10 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 px-2">
+        <div>
+          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Academic Calendar</h1>
+          <p className="text-gray-500 font-medium mt-1">Your weekly schedule and class updates.</p>
         </div>
-        <button 
-          onClick={fetchData}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all font-medium text-sm"
-        >
-          <MdRefresh className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-4">
+            <button 
+                onClick={fetchData}
+                disabled={isLoading}
+                className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm text-gray-400 hover:text-blue-600 hover:border-blue-100 transition-all active:scale-95 group"
+            >
+                <MdRefresh className={`w-6 h-6 ${isLoading ? 'animate-spin text-blue-500' : ''}`} />
+            </button>
+            <div className="bg-white px-6 py-3 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4 overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-1 h-full bg-blue-500" />
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Active Classes</span>
+                    <span className="text-lg font-black text-gray-800 leading-none mt-1">{schedules.length}</span>
+                </div>
+            </div>
+        </div>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-100 shadow-sm">
-          <div className="relative w-16 h-16">
-            <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+        <div className="flex flex-col items-center justify-center py-32 bg-white/50 backdrop-blur-sm rounded-[3rem] border border-gray-100 shadow-sm space-y-6">
+          <div className="relative w-20 h-20">
+            <div className="absolute inset-0 border-8 border-blue-50 rounded-full"></div>
+            <div className="absolute inset-0 border-8 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
           </div>
-          <p className="mt-6 text-gray-500 font-medium animate-pulse">Building your schedule...</p>
+          <div className="text-center">
+            <p className="text-xl font-black text-gray-900">Synchronizing Schedule...</p>
+            <p className="text-gray-500 font-medium">Please wait while we prepare your academic week.</p>
+          </div>
         </div>
       ) : schedules.length > 0 ? (
-        <StudentCalendarView 
-          schedules={schedules}
-          courses={courses}
-          teachers={teachers}
-          departments={departments}
-        />
+        <div className="bg-white rounded-[3rem] border border-gray-100 shadow-sm p-8 lg:p-12 overflow-hidden">
+            <StudentCalendarView 
+                schedules={schedules}
+                courses={courses}
+                teachers={teachers}
+                departments={departments}
+            />
+        </div>
       ) : (
-        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
-          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MdCalendarToday className="w-8 h-8 text-gray-300" />
+        <div className="flex flex-col items-center justify-center py-32 text-center space-y-4 px-4 bg-white/50 backdrop-blur-sm rounded-[3rem] border border-gray-100">
+          <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center text-5xl mb-4">
+            🗓️
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-1">No classes found</h3>
-          <p className="text-gray-500 max-w-xs mx-auto">It looks like there aren't any classes scheduled for your department yet.</p>
+          <h2 className="text-2xl font-black text-gray-900">No Classes Scheduled</h2>
+          <p className="text-gray-500 max-w-sm font-medium">
+            We couldn't find any classes for your department this week. Check back later or contact your administrator.
+          </p>
         </div>
       )}
     </div>

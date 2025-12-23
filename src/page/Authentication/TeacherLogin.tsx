@@ -4,6 +4,8 @@ import axios from "../../api/axiosInstance";
 import { toast } from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../redux/slices/authSlice';
+import { HiMail, HiLockClosed, HiEye, HiEyeOff, HiLightningBolt } from 'react-icons/hi';
+import { motion } from 'framer-motion';
 
 const TeacherLogin = () => {
   const [formData, setFormData] = useState({
@@ -11,13 +13,13 @@ const TeacherLogin = () => {
     password: '',
     rememberMe: false,
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -25,209 +27,158 @@ const TeacherLogin = () => {
     }));
   };
 
-  const validateForm = () => {
-    // Email validation
-    if (!formData.email) {
-      setError('Email is required');
-      toast.error('Email is required');
-      return false;
-    }
-    
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(formData.email)) {
-      setError('Please enter a valid email');
-      toast.error('Please enter a valid email');
-      return false;
-    }
-
-    // Password validation
-    if (!formData.password) {
-      setError('Password is required');
-      toast.error('Password is required');
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Reset previous errors
-    setError('');
-    
-    // Validate form before submission
-    if (!validateForm()) {
+    if (!formData.email || !formData.password) {
+      toast.error('Credentials Required');
       return;
     }
   
     try {
       setLoading(true);
-      
-      const response = await axios.post('/auth/loginTeacher', formData,{
-  withCredentials: true,
-});
+      const response = await axios.post('/auth/loginTeacher', formData, {
+        withCredentials: true,
+      });
       const { accessToken, teacher } = response.data.data;
 
-      // Update Redux store with token and user data
       dispatch(loginSuccess({
         accessToken,
-        user: {
-          ...teacher,
-          role: 'teacher' // Ensure role is lowercase to match backend expectations
-        }
+        user: { ...teacher, role: 'teacher' }
       }));
       
-      // Display success message
-      toast.success(response.data.message || 'Login successful!');
-      
-      // Navigate to dashboard or previous route
+      toast.success('Faculty Access Verified');
       const from = location.state?.from?.pathname || '/teacher/dashboard';
       navigate(from, { replace: true });
   
-    } catch (err:any) {
-      console.log("Caught error:", err);
+    } catch (err: any) {
       setLoading(false);
-      if (err.response) {
-        const status = err.response.status;
-        const message = err.response.data?.message || 'Login failed';
-        if (status === 401) {
-          toast.error(message);
-        } else if (status === 500) {
-          toast.error('Server error. Please try again later.');
-        } else {
-          toast.error(message);
-        }
-      } else if (err.request) {
-        toast.error('No response from server. Please try again.');
-      } else {
-        toast.error(err.message || 'Something went wrong.');
-      }
-    } finally {
-      setLoading(false);
+      toast.error(err.response?.data?.message || 'Access Denied');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl w-full flex bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* Left Side - Gradient Background */}
-        <div className="hidden lg:block lg:w-1/2 relative bg-gradient-to-br from-green-600 via-green-700 to-green-900">
-          <div className="absolute inset-0 bg-pattern opacity-10"></div>
-          <div className="absolute inset-0 flex flex-col justify-end p-12">
-            <h2 className="text-white text-4xl font-bold mb-4">Welcome to EduTrackr</h2>
-            <p className="text-green-100 text-lg">Teacher Portal - Manage Your Classes</p>
-            <div className="mt-8 flex space-x-2">
-              <div className="w-2 h-2 rounded-full bg-green-200"></div>
-              <div className="w-2 h-2 rounded-full bg-green-300"></div>
-              <div className="w-2 h-2 rounded-full bg-green-400"></div>
-            </div>
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-[#022c22]">
+      {/* Bioluminescent Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[150px]" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-teal-500/10 blur-[120px]" />
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="relative z-10 w-full max-w-xl px-4"
+      >
+        {/* Faculty Glass Card */}
+        <div className="backdrop-blur-3xl bg-emerald-950/20 border border-emerald-500/20 rounded-[2.5rem] shadow-2xl overflow-hidden p-8 sm:p-12">
+          {/* Branded Header */}
+          <div className="text-center mb-10">
+            <motion.div 
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 mb-6 shadow-lg shadow-emerald-500/20"
+            >
+              <HiLightningBolt className="text-white text-3xl" />
+            </motion.div>
+            <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Faculty Terminal</h1>
+            <p className="text-emerald-400/80 text-lg font-medium">Orchestrate the Learning Experience.</p>
           </div>
-        </div>
 
-        {/* Right Side - Login Form */}
-        <div className="w-full lg:w-1/2 p-12 sm:p-16">
-          <div className="w-full max-w-md mx-auto">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Teacher Login</h1>
-              <p className="text-gray-600">Welcome back, educator!</p>
-            </div>
-
-            {/* Display error message */}
-            {error && (
-              <div className="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                  Teacher Email ID
-                </label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-emerald-100/60 ml-1">Staff Identifier</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <HiMail className="h-5 w-5 text-emerald-500/50 group-focus-within:text-emerald-400 transition-colors" />
+                </div>
                 <input
-                  id="email"
                   name="email"
                   type="email"
-                  required
                   value={formData.email}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter your email"
+                  className="block w-full pl-11 pr-4 py-4 bg-emerald-900/10 border border-emerald-500/20 rounded-2xl text-white placeholder-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all"
+                  placeholder="faculty@edutrackr.com"
                 />
               </div>
+            </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-emerald-100/60 ml-1">Secure Passkey</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <HiLockClosed className="h-5 w-5 text-emerald-500/50 group-focus-within:text-emerald-400 transition-colors" />
+                </div>
                 <input
-                  id="password"
                   name="password"
-                  type="password"
-                  required
+                  type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  placeholder="Enter your password"
+                  className="block w-full pl-11 pr-12 py-4 bg-emerald-900/10 border border-emerald-500/20 rounded-2xl text-white placeholder-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent transition-all"
+                  placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-emerald-500/50 hover:text-emerald-400 transition-colors"
+                >
+                  {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                </button>
               </div>
+            </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
+            <div className="flex items-center justify-between text-sm pt-2">
+              <label className="flex items-center cursor-pointer group">
+                <div className="relative">
                   <input
-                    id="rememberMe"
                     name="rememberMe"
                     type="checkbox"
                     checked={formData.rememberMe}
                     onChange={handleChange}
-                    className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                    className="sr-only"
                   />
-                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">
-                    Remember me
-                  </label>
+                  <div className={`w-10 h-5 rounded-full transition-colors ${formData.rememberMe ? 'bg-emerald-500' : 'bg-emerald-900/40'}`} />
+                  <div className={`absolute top-1 left-1 w-3 h-3 rounded-full bg-white transition-transform ${formData.rememberMe ? 'translate-x-5' : ''}`} />
                 </div>
-                <Link to="/auth/forgot-password" className="text-sm font-medium text-green-600 hover:text-green-500">
-                  Forgot Password?
+                <span className="ml-3 text-emerald-100/60 group-hover:text-emerald-100 transition-colors">Remember Protocol</span>
+              </label>
+              <Link to="/auth/forgot-password" title="Recover Staff Access" className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors">
+                Recover Key
+              </Link>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={loading}
+              className={`w-full group relative flex items-center justify-center py-4 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl text-white font-bold shadow-xl shadow-emerald-900/40 hover:shadow-emerald-500/20 transition-all duration-300 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              <span className="relative flex items-center">
+                {loading ? 'Verifying Faculty...' : 'Authorize Session'}
+              </span>
+            </motion.button>
+
+            <div className="mt-8 pt-8 border-t border-emerald-500/10">
+              <p className="text-center text-xs font-bold text-emerald-500/40 mb-4 tracking-[0.2em] uppercase">Jump Stream</p>
+              <div className="grid grid-cols-2 gap-4">
+                <Link
+                  to="/auth/student-login"
+                  className="flex items-center justify-center py-3 bg-emerald-950/40 border border-emerald-500/10 rounded-xl text-emerald-400/60 hover:bg-emerald-500/10 hover:text-emerald-300 transition-all text-sm font-medium"
+                >
+                  Student Hub
+                </Link>
+                <Link
+                  to="/auth/admin-login"
+                  className="flex items-center justify-center py-3 bg-emerald-950/40 border border-emerald-500/10 rounded-xl text-emerald-400/60 hover:bg-emerald-500/10 hover:text-emerald-300 transition-all text-sm font-medium"
+                >
+                  Admin HQ
                 </Link>
               </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {loading ? 'Logging in...' : 'Login as Teacher'}
-              </button>
-
-              <div className="mt-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Or sign in as</span>
-                  </div>
-                </div>
-
-                <div className="mt-6 grid grid-cols-2 gap-3">
-                  <Link
-                    to="/auth/admin-login"
-                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    Admin
-                  </Link>
-                  <Link
-                    to="/auth/student-login"
-                    className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-xl shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-                  >
-                    Student
-                  </Link>
-                </div>
-              </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

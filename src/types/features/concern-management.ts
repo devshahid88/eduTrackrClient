@@ -1,7 +1,7 @@
 import { BaseEntity, User } from '../common';
 
 // Consolidated Concern Types
-export type ConcernStatus = 'Pending' | 'In Progress' | 'Solved' | 'Rejected';
+export type ConcernStatus = 'pending' | 'in_progress' | 'solved' | 'rejected';
 export type ConcernType = 'Academic' | 'Administrative';
 export type UserRole = 'student' | 'teacher' | 'admin';
 

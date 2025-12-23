@@ -1,262 +1,178 @@
 import React from 'react';
+import { 
+  MdFilterList, 
+  MdClose, 
+  MdCheckCircle, 
+  MdAccessTime, 
+  MdWarning, 
+  MdTrendingUp,
+  MdLayers,
+  MdSettingsBackupRestore
+} from 'react-icons/md';
 
-const AssignmentFilters = ({ filters, setFilters, courses, departments, courseNameMap, departmentNameMap }) => {
-  const handleFilterChange = (filterName, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterName]: value
-    }));
+interface FilterProps {
+  filters: {
+    course: string;
+    department: string;
+    status: string;
+    sortBy: string;
+  };
+  setFilters: React.Dispatch<React.SetStateAction<any>>;
+  courses: { _id: string; name: string }[];
+  departments: { _id: string; name: string }[];
+}
+
+const AssignmentFilters: React.FC<FilterProps> = ({ filters, setFilters, courses, departments }) => {
+  const handleFilterChange = (name: string, value: string) => {
+    setFilters((prev: any) => ({ ...prev, [name]: value }));
   };
 
-  const clearAllFilters = () => {
+  const clearFilters = () => {
     setFilters({
       course: 'all',
       department: 'all',
       status: 'all',
-      sortBy: 'dueDate'
+      sortBy: 'dueDate',
     });
   };
 
   const hasActiveFilters = filters.course !== 'all' || filters.department !== 'all' || filters.status !== 'all';
 
-  const removeFilter = (filterName) => {
-    handleFilterChange(filterName, 'all');
-  };
-
-  const getFilterDisplayName = (filterType, value) => {
-    switch (filterType) {
-      case 'course':
-        return `Course: ${courseNameMap.get(value) || value}`;
-      case 'department':
-        return `Department: ${departmentNameMap.get(value) || value}`;
-      case 'status':
-        return `Status: ${value.charAt(0).toUpperCase() + value.slice(1)}`;
-      default:
-        return value;
-    }
-  };
-
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Filter Assignments</h3>
+    <div className="bg-white/70 backdrop-blur-md rounded-[2.5rem] p-8 border border-gray-100 shadow-sm space-y-8 animate-in fade-in slide-in-from-top-4 duration-500">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+           <div className="p-2.5 bg-gray-900 rounded-xl text-blue-400 shadow-lg shadow-blue-900/10">
+              <MdFilterList className="text-lg" />
+           </div>
+           <div>
+              <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest">Intelligent Filters</h3>
+              <p className="text-[10px] font-bold text-gray-400">Refine your curriculum overview.</p>
+           </div>
+        </div>
+        
         {hasActiveFilters && (
           <button
-            onClick={clearAllFilters}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center space-x-1"
+            onClick={clearFilters}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-50 hover:text-rose-600 transition-all active:scale-95"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-            <span>Clear All</span>
+            <MdSettingsBackupRestore className="text-sm" />
+            Reset Architecture
           </button>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Course Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Course
-          </label>
-          <select
-            value={filters.course}
-            onChange={(e) => handleFilterChange('course', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="all">All Courses</option>
-            {courses?.map((courseId) => (
-              <option key={courseId} value={courseId}>
-                {courseNameMap.get(courseId)}
-              </option>
-            ))}
-          </select>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Course Select */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Knowledge Domain</label>
+          <div className="relative group">
+            <select
+              value={filters.course}
+              onChange={(e) => handleFilterChange('course', e.target.value)}
+              className="w-full bg-gray-50/50 border-gray-100 rounded-2xl px-5 py-4 text-xs font-bold text-gray-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+            >
+              <option value="all">All Modules</option>
+              {courses.map(c => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
+            </select>
+            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300 group-hover:text-blue-500 transition-colors">
+               <MdLayers />
+            </div>
+          </div>
         </div>
 
-        {/* Department Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Department
-          </label>
-          <select
-            value={filters.department}
-            onChange={(e) => handleFilterChange('department', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="all">All Departments</option>
-            {departments?.map((departmentId) => (
-              <option key={departmentId} value={departmentId}>
-                {departmentNameMap.get(departmentId)}
-              </option>
-            ))}
-          </select>
+        {/* Department Select */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Faculty / Department</label>
+          <div className="relative group">
+            <select
+              value={filters.department}
+              onChange={(e) => handleFilterChange('department', e.target.value)}
+              className="w-full bg-gray-50/50 border-gray-100 rounded-2xl px-5 py-4 text-xs font-bold text-gray-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+            >
+              <option value="all">Global Reach</option>
+              {departments.map(d => (
+                <option key={d._id} value={d._id}>{d.name}</option>
+              ))}
+            </select>
+            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300 group-hover:text-emerald-500 transition-colors">
+               <MdCheckCircle />
+            </div>
+          </div>
         </div>
 
-        {/* Status Filter */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Status
-          </label>
-          <select
-            value={filters.status}
-            onChange={(e) => handleFilterChange('status', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="all">All Assignments</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-            <option value="due-soon">Due Soon</option>
-          </select>
+        {/* Status Select */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Lifecycle Status</label>
+          <div className="relative group">
+            <select
+              value={filters.status}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+              className="w-full bg-gray-50/50 border-gray-100 rounded-2xl px-5 py-4 text-xs font-bold text-gray-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+            >
+              <option value="all">All States</option>
+              <option value="active">Active Resonance</option>
+              <option value="expired">Terminated</option>
+              <option value="due-soon">Critical Window</option>
+            </select>
+            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300 group-hover:text-amber-500 transition-colors">
+               <MdAccessTime />
+            </div>
+          </div>
         </div>
 
-        {/* Sort By */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Sort By
-          </label>
-          <select
-            value={filters.sortBy}
-            onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-          >
-            <option value="dueDate">Due Date</option>
-            <option value="createdAt">Created Date</option>
-            <option value="title">Title (A-Z)</option>
-            <option value="submissions">Most Submissions</option>
-            <option value="maxMarks">Highest Marks</option>
-          </select>
+        {/* Sort Select */}
+        <div className="space-y-3">
+          <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Chronological Order</label>
+          <div className="relative group">
+            <select
+              value={filters.sortBy}
+              onChange={(e) => handleFilterChange('sortBy', e.target.value)}
+              className="w-full bg-gray-50/50 border-gray-100 rounded-2xl px-5 py-4 text-xs font-bold text-gray-700 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+            >
+              <option value="dueDate">Terminator (Due Date)</option>
+              <option value="createdAt">Genesis (Created)</option>
+              <option value="title">Alphabetical Sync</option>
+              <option value="submissions">Highest Engagement</option>
+            </select>
+            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-300 group-hover:text-indigo-500 transition-colors">
+               <MdTrendingUp />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Quick Filter Buttons */}
-      <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-gray-200">
-        <span className="text-sm font-medium text-gray-700 mr-2">Quick Filters:</span>
-        
-        <button
-          onClick={() => handleFilterChange('status', 'active')}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-            filters.status === 'active'
-              ? 'bg-green-100 text-green-800 border border-green-200'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          <span className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Active</span>
-          </span>
-        </button>
-
-        <button
-          onClick={() => handleFilterChange('status', 'expired')}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-            filters.status === 'expired'
-              ? 'bg-red-100 text-red-800 border border-red-200'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          <span className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-            <span>Expired</span>
-          </span>
-        </button>
-
-        <button
-          onClick={() => handleFilterChange('status', 'due-soon')}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-            filters.status === 'due-soon'
-              ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          <span className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <span>Due Soon</span>
-          </span>
-        </button>
-
-        <button
-          onClick={() => handleFilterChange('sortBy', 'submissions')}
-          className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-            filters.sortBy === 'submissions'
-              ? 'bg-blue-100 text-blue-800 border border-blue-200'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-        >
-          <span className="flex items-center space-x-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-            <span>Top Submissions</span>
-          </span>
-        </button>
-      </div>
-
-      {/* Active Filters Display */}
       {hasActiveFilters && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Active Filters:</span>
-            <span className="text-xs text-gray-500">
-              {Object.values(filters).filter(value => value !== 'all' && value !== 'dueDate').length} active
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {filters.course !== 'all' && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                {getFilterDisplayName('course', filters.course)}
-                <button
-                  onClick={() => removeFilter('course')}
-                  className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-blue-200 focus:outline-none"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </span>
-            )}
-            
-            {filters.department !== 'all' && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                {getFilterDisplayName('department', filters.department)}
-                <button
-                  onClick={() => removeFilter('department')}
-                  className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full hover:bg-purple-200 focus:outline-none"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </span>
-            )}
-            
-            {filters.status !== 'all' && (
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
-                filters.status === 'active' 
-                  ? 'bg-green-100 text-green-800 border-green-200'
-                  : filters.status === 'expired'
-                  ? 'bg-red-100 text-red-800 border-red-200'
-                  : 'bg-yellow-100 text-yellow-800 border-yellow-200'
-              }`}>
-                {getFilterDisplayName('status', filters.status)}
-                <button
-                  onClick={() => removeFilter('status')}
-                  className={`ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full focus:outline-none ${
-                    filters.status === 'active' 
-                      ? 'hover:bg-green-200'
-                      : filters.status === 'expired'
-                      ? 'hover:bg-red-200'
-                      : 'hover:bg-yellow-200'
-                  }`}
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </span>
-            )}
-          </div>
+        <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-50">
+           <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest self-center mr-2">Active Protocols:</span>
+           {filters.course !== 'all' && (
+             <Tag label={`Domain: ${courses.find(c => c._id === filters.course)?.name}`} onRemove={() => handleFilterChange('course', 'all')} color="blue" />
+           )}
+           {filters.department !== 'all' && (
+             <Tag label={`Dept: ${departments.find(d => d._id === filters.department)?.name}`} onRemove={() => handleFilterChange('department', 'all')} color="emerald" />
+           )}
+           {filters.status !== 'all' && (
+             <Tag label={`Status: ${filters.status}`} onRemove={() => handleFilterChange('status', 'all')} color="amber" />
+           )}
         </div>
       )}
+    </div>
+  );
+};
+
+const Tag = ({ label, onRemove, color }: { label: string, onRemove: () => void, color: 'blue' | 'emerald' | 'amber' }) => {
+  const colors = {
+    blue: 'bg-blue-50 text-blue-600 border-blue-100',
+    emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+    amber: 'bg-amber-50 text-amber-600 border-amber-100',
+  };
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border ${colors[color]} animate-in zoom-in-95 duration-200`}>
+      <span className="text-[10px] font-black uppercase tracking-wider">{label}</span>
+      <button onClick={onRemove} className="hover:scale-125 transition-transform"><MdClose className="text-xs" /></button>
     </div>
   );
 };

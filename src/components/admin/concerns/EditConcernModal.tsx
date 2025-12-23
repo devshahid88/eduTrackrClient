@@ -3,7 +3,9 @@ import { EditConcernModalProps } from '../../../types/components/admin';
 import { ConcernStatus } from '../../../types/features/concern-management';
 
 const EditConcernModal: React.FC<EditConcernModalProps> = ({ concern, onClose, onSave }) => {
-  const [status, setStatus] = useState<ConcernStatus>(concern.status);
+  const [status, setStatus] = useState<ConcernStatus>(
+    concern.status === 'pending' || concern.status === 'in_progress' ? 'solved' : concern.status
+  );
   const [feedback, setFeedback] = useState<string>(concern.feedback || '');
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string>('');
@@ -47,16 +49,16 @@ const EditConcernModal: React.FC<EditConcernModalProps> = ({ concern, onClose, o
               onChange={e => setStatus(e.target.value as ConcernStatus)}
               required
             >
-              <option value="Pending">Pending</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Solved">Solved</option>
-              <option value="Rejected">Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="in_progress">In Progress</option>
+              <option value="solved">Resolved</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Feedback {status === 'Rejected' && <span className="text-red-500">*</span>}
+              Feedback {status === 'rejected' && <span className="text-red-500">*</span>}
             </label>
             <textarea
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -64,7 +66,7 @@ const EditConcernModal: React.FC<EditConcernModalProps> = ({ concern, onClose, o
               onChange={e => setFeedback(e.target.value)}
               rows={3}
               placeholder="Enter feedback (required for rejected concerns)"
-              required={status === 'Rejected'}
+              required={status === 'rejected'}
             />
           </div>
           

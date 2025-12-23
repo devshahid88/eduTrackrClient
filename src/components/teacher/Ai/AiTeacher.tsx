@@ -6,12 +6,11 @@ import React, {
   KeyboardEvent,
 } from 'react';
 import {
- Send,
+  Send,
   BookOpen,
   Users,
   FileText,
   PieChart,
-  GraduationCap,
   Bot,
   User,
   History,
@@ -23,7 +22,9 @@ import {
   Award,
   AlertCircle,
   Loader2,
+  AutoAwesome
 } from 'lucide-react';
+import { MdAutoAwesome, MdHistory, MdFileDownload, MdDeleteSweep } from 'react-icons/md';
 
 // --- Types ---
 export interface AiMessage {
@@ -39,7 +40,6 @@ export interface QuickAction {
   icon: React.ComponentType<any>;
 }
 
-// Response shape from your backend
 export interface AiChatResponse {
   success: boolean;
   response?: string;
@@ -47,14 +47,13 @@ export interface AiChatResponse {
   timestamp?: string;
 }
 
-// --- Component ---
 const AiTeacher: React.FC = () => {
   const [messages, setMessages] = useState<AiMessage[]>([
     {
       id: 1,
       type: 'ai',
       content:
-        "Hello! I'm your AI teaching assistant. I can help you create lesson plans, generate assessments, analyze student performance, and provide educational guidance. How can I assist you today?",
+        "Greetings, Educator! I'm your advanced AI teaching assistant. I can help you architect lesson plans, synthesize assessments, analyze student trajectories, or provide deep pedagogical insights. How shall we transform learning today?",
       timestamp: new Date(),
     },
   ]);
@@ -67,16 +66,15 @@ const AiTeacher: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Update with your actual API base URL
   const API_BASE_URL = 'http://localhost:3003';
 
   const teacherActions: QuickAction[] = [
-    { text: 'Create a lesson plan for elementary math', icon: BookOpen },
-    { text: 'Generate quiz questions for science chapter', icon: ClipboardList },
-    { text: 'Analyze student performance data', icon: PieChart },
-    { text: 'Create assessment rubric for writing assignment', icon: Award },
-    { text: 'Suggest teaching strategies for visual learners', icon: Users },
-    { text: 'Help with curriculum planning for next semester', icon: FileText },
+    { text: 'Design a STEM lesson plan for Grade 10', icon: BookOpen },
+    { text: 'Compose a quiz for Quantum Physics', icon: ClipboardList },
+    { text: 'Synthesize student performance analytics', icon: PieChart },
+    { text: 'Draft an evaluation rubric for literary essays', icon: Award },
+    { text: 'Recommend strategies for kinesthetic learners', icon: Users },
+    { text: 'Architect curriculum for the upcoming semester', icon: FileText },
   ];
 
   const scrollToBottom = () => {
@@ -91,26 +89,16 @@ const AiTeacher: React.FC = () => {
     message: string,
     context: { type: 'user' | 'ai'; content: string }[] | null = null
   ): Promise<string> => {
-    const payload = {
-      message,
-      context,
-    };
-
+    const payload = { message, context };
     const response = await fetch(`${API_BASE_URL}/api/ai/teacher/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data: AiChatResponse = await response.json();
-    if (!data.success || !data.response) {
-      throw new Error(data.error || 'No response from AI');
-    }
-
+    if (!data.success || !data.response) throw new Error(data.error || 'No response from AI resonance');
     return data.response;
   };
 
@@ -130,9 +118,7 @@ const AiTeacher: React.FC = () => {
     setError(null);
 
     try {
-      const context = messages
-        .slice(-3)
-        .map((msg) => ({ type: msg.type, content: msg.content }));
+      const context = messages.slice(-3).map((msg) => ({ type: msg.type, content: msg.content }));
       const aiText = await sendMessageToAPI(currentText, context);
 
       const aiMsg: AiMessage = {
@@ -144,13 +130,12 @@ const AiTeacher: React.FC = () => {
       setMessages((prev) => [...prev, aiMsg]);
       setIsConnected(true);
     } catch (err) {
-      setError('Failed to get response from AI. Please try again.');
+      setError('Communication link failure. Synchronizing neural protocols.');
       setIsConnected(false);
       const errMsg: AiMessage = {
         id: Date.now() + 2,
         type: 'ai',
-        content:
-          "I apologize, but I'm having trouble connecting to the server right now. Please check your connection and try again.",
+        content: "I apologize, our synaptic link is currently experiencing interference. Please verify your connection or attempt recalibration.",
         timestamp: new Date(),
         isError: true,
       };
@@ -172,15 +157,12 @@ const AiTeacher: React.FC = () => {
   };
 
   const clearHistory = () => {
-    setMessages([
-      {
-        id: 1,
-        type: 'ai',
-        content:
-          "Hello! I'm your AI teaching assistant. How can I help you with your educational tasks today?",
-        timestamp: new Date(),
-      },
-    ]);
+    setMessages([{
+      id: 1,
+      type: 'ai',
+      content: "Memory wipe complete. How shall we begin our new educational architectural session?",
+      timestamp: new Date(),
+    }]);
     setError(null);
   };
 
@@ -190,103 +172,44 @@ const AiTeacher: React.FC = () => {
       content: msg.content,
       timestamp: msg.timestamp.toISOString(),
     }));
-    const blob = new Blob([JSON.stringify(chatData, null, 2)], {
-      type: 'application/json',
-    });
+    const blob = new Blob([JSON.stringify(chatData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `ai-teacher-chat-${new Date()
-      .toISOString()
-      .split('T')[0]}.json`;
+    link.download = `neural-academic-log-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
-  const onInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setInputMessage(e.target.value);
-  };
-
-  const onInputKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !isTyping) {
-      handleSendMessage();
-    }
-  };
-
   const renderMessage = (message: AiMessage) => (
     <div
       key={message.id}
-      className={`flex ${
-        message.type === 'user' ? 'justify-end' : 'justify-start'
-      } mb-4 group`}
+      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} mb-8 group animate-in fade-in slide-in-from-bottom-2 duration-300`}
     >
-      <div
-        className={`flex items-start max-w-xs lg:max-w-md xl:max-w-lg ${
-          message.type === 'user' ? 'flex-row-reverse' : 'flex-row'
-        }`}
-      >
-        <div
-          className={`flex-shrink-0 ${
-            message.type === 'user' ? 'ml-2' : 'mr-2'
-          }`}
-        >
-          <div
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              message.type === 'user'
-                ? 'bg-green-500'
-                : message.isError
-                ? 'bg-red-500'
-                : 'bg-gradient-to-r from-blue-500 to-indigo-500'
-            }`}
-          >
-            {message.type === 'user' ? (
-              <User size={16} className="text-white" />
-            ) : message.isError ? (
-              <AlertCircle size={16} className="text-white" />
-            ) : (
-              <Bot size={16} className="text-white" />
-            )}
+      <div className={`flex items-start max-w-[85%] lg:max-w-[70%] ${message.type === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+        <div className={`flex-shrink-0 ${message.type === 'user' ? 'ml-4' : 'mr-4'}`}>
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110 ${
+            message.type === 'user' ? 'bg-blue-600' : message.isError ? 'bg-rose-500' : 'bg-gray-900 border border-gray-100'
+          }`}>
+            {message.type === 'user' ? <User size={18} className="text-white" /> : message.isError ? <AlertCircle size={18} className="text-white" /> : <Bot size={18} className="text-blue-400" />}
           </div>
         </div>
-        <div
-          className={`rounded-2xl px-4 py-3 shadow-md relative ${
-            message.type === 'user'
-              ? 'bg-green-500 text-white'
-              : message.isError
-              ? 'bg-red-50 text-red-800 border border-red-200'
-              : 'bg-white text-gray-800 border border-gray-200'
-          }`}
-        >
-          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-            {message.content}
-          </p>
-          <div className="flex items-center justify-between mt-2">
-            <span
-              className={`text-xs ${
-                message.type === 'user'
-                  ? 'text-green-100'
-                  : message.isError
-                  ? 'text-red-500'
-                  : 'text-gray-500'
-              }`}
-            >
-              {message.timestamp.toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </span>
+        <div className={`relative px-6 py-4 rounded-[2rem] shadow-sm ${
+          message.type === 'user' ? 'bg-blue-600 text-white shadow-blue-100' : 
+          message.isError ? 'bg-rose-50 text-rose-800 border-rose-100 border' : 
+          'bg-white text-gray-800 border border-gray-50'
+        }`}>
+          <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{message.content}</p>
+          <div className="flex items-center justify-between mt-3 opacity-60">
+            <span className="text-[10px] font-black uppercase tracking-widest">{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             {message.type === 'ai' && !message.isError && (
               <button
                 onClick={() => copyMessage(message.id, message.content)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 hover:bg-gray-100 rounded"
+                className="hover:text-blue-600 transition-colors p-1"
               >
-                {copiedMessageId === message.id ? (
-                  <Check size={12} className="text-green-500" />
-                ) : (
-                  <Copy size={12} className="text-gray-500" />
-                )}
+                {copiedMessageId === message.id ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
               </button>
             )}
           </div>
@@ -296,143 +219,111 @@ const AiTeacher: React.FC = () => {
   );
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 overflow-y-auto">
-      <div className="max-w-7xl mx-auto h-full flex flex-col md:ml-64">
-        {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-4 mb-4 border border-gray-100 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 p-3 rounded-xl">
-                <GraduationCap className="text-white" size={24} />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">
-                  AI Teaching Assistant
-                </h1>
-                <p className="text-gray-600">Your intelligent education companion</p>
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={clearHistory}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Clear</span>
-              </button>
-              <button
-                onClick={exportChat}
-                className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
-              >
-                <Download size={16} />
-                <span className="hidden sm:inline">Export</span>
-              </button>
-            </div>
-          </div>
-          {/* Connection Status & Error */}
-          {error && (
-            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
-              <AlertCircle size={16} className="text-red-500" />
-              <span className="text-red-700 text-sm">{error}</span>
-            </div>
-          )}
+    <div className="container mx-auto px-4 py-10 h-[calc(100vh-120px)] flex flex-col space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      {/* Premium Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
+        <div className="flex items-center gap-4">
+           <div className="w-14 h-14 bg-gray-900 rounded-[1.5rem] flex items-center justify-center shadow-xl">
+              <MdAutoAwesome className="text-2xl text-blue-400 animate-pulse" />
+           </div>
+           <div>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">AI Teaching Laboratory</h1>
+              <p className="text-gray-500 font-medium text-sm">Empowering educators with predictive intelligence.</p>
+           </div>
         </div>
+        <div className="flex gap-2">
+          <button onClick={clearHistory} className="p-3 bg-white text-gray-400 border border-gray-100 rounded-2xl hover:text-rose-500 hover:bg-rose-50 transition-all active:scale-95 shadow-sm" title="Clear Logic"><MdDeleteSweep className="text-xl" /></button>
+          <button onClick={exportChat} className="p-3 bg-white text-gray-400 border border-gray-100 rounded-2xl hover:text-blue-600 hover:bg-blue-50 transition-all active:scale-95 shadow-sm" title="Sync Records"><MdFileDownload className="text-xl" /></button>
+        </div>
+      </div>
 
-        <div className="flex-1 flex gap-4 min-h-0">
-          {/* Sidebar */}
-          <div className="w-72 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-100 h-full">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Teaching Tools</h3>
-              <div className="space-y-2">
+      <div className="flex-1 flex gap-8 min-h-0 overflow-hidden">
+        {/* Sidebar: Neural Tools */}
+        <div className="hidden lg:flex w-80 flex-col space-y-6">
+           <div className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 flex-1 overflow-y-auto custom-scrollbar">
+              <h3 className="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-6 px-2">Knowledge Domains</h3>
+              <div className="space-y-3">
                 {teacherActions.map((action, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleQuickAction(action.text)}
-                    className="w-full flex items-center space-x-3 p-3 rounded-xl bg-gray-50 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 group text-left"
+                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:bg-blue-50/50 hover:border-blue-100 text-left transition-all duration-300 group"
                   >
-                    <div className="bg-blue-100 p-2 rounded-lg group-hover:bg-blue-200 transition-colors duration-200">
-                      <action.icon size={14} className="text-blue-600 group-hover:text-blue-700" />
+                    <div className="bg-white p-2.5 rounded-xl shadow-sm text-blue-600 group-hover:scale-110 transition-transform">
+                      <action.icon size={16} />
                     </div>
-                    <span className="text-sm font-medium">{action.text}</span>
+                    <span className="text-xs font-black text-gray-600 group-hover:text-blue-900 leading-tight">{action.text}</span>
                   </button>
                 ))}
               </div>
-              {/* API Status */}
-              <div className="mt-6 p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div
-                    className={`w-2 h-2 rounded-full ${
-                      isConnected ? 'bg-green-500' : 'bg-red-500'
-                    }`}
-                  ></div>
-                  <span className="text-xs text-gray-600">
-                    {isConnected ? 'Connected to AI Service' : 'Connection Issue'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Chat */}
-          <div className="flex-1 bg-white rounded-2xl shadow-lg border border-gray-100 flex flex-col min-h-0">
-            {/* Chat Header */}
-            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div
-                  className={`w-3 h-3 rounded-full ${
-                    isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-                  }`}
-                ></div>
-                <span className="font-medium text-gray-800">
-                  AI Teaching Assistant {isConnected ? 'Online' : 'Offline'}
-                </span>
+              <div className="mt-10 p-5 bg-gray-900 rounded-[2rem] text-white">
+                 <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-rose-400'} animate-pulse`} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{isConnected ? 'System Online' : 'Offline Mode'}</span>
+                 </div>
+                 <p className="text-[10px] font-medium text-gray-400 leading-relaxed">Neural processing cores are active. Ready for pedagogical synthesis.</p>
               </div>
-              <div className="flex space-x-2">
-                <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200">
-                  <History size={18} className="text-gray-600" />
-                </button>
-              </div>
-            </div>
+           </div>
+        </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Neural Interface (Chat Area) */}
+        <div className="flex-1 flex flex-col bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden relative">
+           {/* Chat Indicator */}
+           <div className="px-8 py-5 border-b border-gray-50 flex items-center justify-between bg-white/50 backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                 <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Atmosphere Real-time Resonance</span>
+              </div>
+              <MdHistory className="text-xl text-gray-300 hover:text-blue-600 transition-colors cursor-pointer" />
+           </div>
+
+           {/* Transcript */}
+           <div className="flex-1 overflow-y-auto p-10 space-y-2 custom-scrollbar bg-gray-50/20">
               {messages.map(renderMessage)}
               {isTyping && (
-                <div className="flex justify-start mb-4">
-                  <div className="flex items-center space-x-2 bg-gray-100 rounded-2xl px-4 py-3">
+                <div className="flex justify-start mb-8 animate-pulse">
+                  <div className="bg-white border border-gray-50 rounded-[2rem] px-6 py-4 flex items-center gap-3 shadow-sm">
                     <Loader2 size={16} className="text-blue-500 animate-spin" />
-                    <span className="text-sm text-gray-500">AI is thinking...</span>
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">AI is synthesizing...</span>
                   </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
-            </div>
+           </div>
 
-            {/* Input */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center space-x-3">
-                <div className="flex-1 relative">
-                  <input
-                    ref={inputRef}
-                    type="text"
-                    value={inputMessage}
-                    onChange={onInputChange}
-                    onKeyPress={onInputKeyPress}
-                    placeholder="Ask me about lesson planning, assessments, teaching strategies..."
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    disabled={isTyping}
-                  />
-                </div>
-                <button
-                  onClick={handleSendMessage}
-                  disabled={!inputMessage.trim() || isTyping}
-                  className="p-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white rounded-xl transition-all duration-200 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                  {isTyping ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-                </button>
+           {/* Input Chamber */}
+           <div className="p-8 border-t border-gray-50 bg-white">
+              <div className="flex items-center gap-4 bg-gray-50 p-2 rounded-[2rem] border border-gray-100 shadow-inner group focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                 <input
+                   ref={inputRef}
+                   type="text"
+                   value={inputMessage}
+                   onChange={(e) => setInputMessage(e.target.value)}
+                   onKeyPress={(e) => e.key === 'Enter' && !isTyping && handleSendMessage()}
+                   placeholder="Ask about architecture, curriculum, or individual student trajectories..."
+                   className="flex-1 px-6 py-4 bg-transparent border-none focus:ring-0 text-sm font-bold text-gray-800 placeholder:text-gray-300"
+                   disabled={isTyping}
+                 />
+                 <button
+                   onClick={handleSendMessage}
+                   disabled={!inputMessage.trim() || isTyping}
+                   className={`p-4 rounded-[1.5rem] shadow-xl flex items-center justify-center transition-all ${
+                     !inputMessage.trim() || isTyping ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-gray-900 text-blue-400 hover:scale-105 active:scale-95 shadow-blue-900/10'
+                   }`}
+                 >
+                   {isTyping ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
+                 </button>
               </div>
-            </div>
-          </div>
+           </div>
+
+           {/* Error toast overlay inside chat if any */}
+           {error && (
+             <div className="absolute top-20 left-1/2 -translate-x-1/2 px-6 py-3 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 z-50">
+                <AlertCircle size={14} />
+                {error}
+             </div>
+           )}
         </div>
       </div>
     </div>
