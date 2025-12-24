@@ -1,4 +1,4 @@
-import React from 'react';
+import axiosInstance from '../../../api/axiosInstance';
 import { Toaster, toast } from 'react-hot-toast';
 
 const DeleteUserModal = ({ user, onClose, onDeleteSuccess }) => {
@@ -6,30 +6,19 @@ const DeleteUserModal = ({ user, onClose, onDeleteSuccess }) => {
   const handleDelete = async () => {
     try {
       const userId = user._id || user.id;
-      const baseURL = 'http://localhost:3000';
       let apiUrl = '';
   
       if (user.role === 'Student') {
-        apiUrl = `${baseURL}/api/students/${userId}`;
+        apiUrl = `/api/students/${userId}`;
       } else if (user.role === 'Teacher') {
-        apiUrl = `${baseURL}/api/teachers/${userId}`;
+        apiUrl = `/api/teachers/${userId}`;
       } else if (user.role === 'Admin') {
-        apiUrl = `${baseURL}/api/admins/${userId}`;
+        apiUrl = `/api/admins/${userId}`;
       }
   
-      const response = await fetch(apiUrl, {
-        method: 'DELETE',
-      });
+      const response = await axiosInstance.delete(apiUrl);
   
-      const data = await response.json();
-  
-      if (!response.ok) {
-        const errorMessage = data?.message || 'Failed to delete user';
-        toast.error(errorMessage);
-        throw new Error(errorMessage);
-      }
-  
-      toast.success(data?.message || 'User deleted successfully');
+      toast.success(response.data?.message || 'User deleted successfully');
       onDeleteSuccess(userId);  // Notify parent
       onClose();  // Close modal
     } catch (error:any) {

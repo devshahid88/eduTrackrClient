@@ -11,8 +11,8 @@ import { ChatWindow } from '../../common/chat/ChatWindow';
 import { ChatListItem, ChatMessage } from '../../../types/features/chat';
 
 // Backend configuration
-const API_URL = 'http://localhost:3003/api';
-const SOCKET_URL = 'http://localhost:3003';
+const API_URL = import.meta.env.VITE_APP_BASE_URL ? `${import.meta.env.VITE_APP_BASE_URL}/api` : 'http://localhost:3000/api';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000';
 
 let socket: Socket | null = null;
 

@@ -22,7 +22,6 @@ import {
   Award,
   AlertCircle,
   Loader2,
-  AutoAwesome
 } from 'lucide-react';
 import { MdAutoAwesome, MdHistory, MdFileDownload, MdDeleteSweep } from 'react-icons/md';
 
@@ -66,7 +65,7 @@ const AiTeacher: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const API_BASE_URL = 'http://localhost:3003';
+  const API_BASE_URL = import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000';
 
   const teacherActions: QuickAction[] = [
     { text: 'Design a STEM lesson plan for Grade 10', icon: BookOpen },

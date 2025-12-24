@@ -26,6 +26,7 @@ export interface User {
   firstname?: string;     // Common in user profiles
   lastname?: string;      // Common in user profiles
   department?: string;    // For teachers/students
+  departmentName?: string; // Added: Department display name
 }
 
 // MongoDB ID validation regex

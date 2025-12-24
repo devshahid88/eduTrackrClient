@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
@@ -106,8 +107,8 @@ const AdminProfile: React.FC = () => {
       if (imageFile) {
         const formData = new FormData();
         formData.append('profileImage', imageFile);
-        const imageRes = await axios.put<ApiResponse<{ profileImage: string }>>(
-          `http://localhost:3000/api/admins/${admin.id}/profile-image`,
+        const imageRes = await axiosInstance.put<ApiResponse<{ profileImage: string }>>(
+          `/api/admins/${admin.id}/profile-image`,
           formData,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -122,8 +123,8 @@ const AdminProfile: React.FC = () => {
         profileImage: profileImageUrl,
       };
 
-      const response = await axios.put<ApiResponse<Admin>>(
-        `http://localhost:3000/api/admins/${admin.id}`,
+      const response = await axiosInstance.put<ApiResponse<Admin>>(
+        `/api/admins/${admin.id}`,
         updateData,
         { headers: { 'Content-Type': 'application/json' } }
       );

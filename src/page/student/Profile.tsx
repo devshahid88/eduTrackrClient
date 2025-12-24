@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import axiosInstance from '../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { toast, Toaster } from 'react-hot-toast';
 import { useSelector } from 'react-redux';
@@ -71,8 +72,8 @@ const StudentProfile = () => {
         formData.append('profileImage', imageFile);
       }
       if (imageFile) {
-        const imageResponse = await axios.put(
-          `http://localhost:3000/api/students/${student.id}/profile-image`,
+        const imageResponse = await axiosInstance.put(
+          `/api/students/${student.id}/profile-image`,
           formData,
           { headers: { 'Content-Type': 'multipart/form-data' } }
         );
@@ -86,8 +87,8 @@ const StudentProfile = () => {
         email: editEmail.trim(),
         profileImage: editProfileImage,
       };
-      const response = await axios.put(
-        `http://localhost:3000/api/students/${student.id}`,
+      const response = await axiosInstance.put(
+        `/api/students/${student.id}`,
         updateData,
         { headers: { 'Content-Type': 'application/json' } }
       );

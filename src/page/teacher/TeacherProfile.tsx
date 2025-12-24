@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import axiosInstance from "../../api/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
 import { useSelector } from "react-redux";
@@ -90,8 +91,8 @@ const TeacherProfile = () => {
         const fd = new FormData();
         fd.append("profileImage", imageFile);
 
-        const imgRes = await axios.put(
-          `http://localhost:3000/api/teachers/${teacher.id}/profile-image`,
+        const imgRes = await axiosInstance.put(
+          `/api/teachers/${teacher.id}/profile-image`,
           fd,
           { headers: { "Content-Type": "multipart/form-data" } }
         );
@@ -99,7 +100,7 @@ const TeacherProfile = () => {
         profileImageUrl = imgRes.data?.data?.profileImage;
       }
 
-      await axios.put(`http://localhost:3000/api/teachers/${teacher.id}`, {
+      await axiosInstance.put(`/api/teachers/${teacher.id}`, {
         ...editData,
         profileImage: profileImageUrl,
       });

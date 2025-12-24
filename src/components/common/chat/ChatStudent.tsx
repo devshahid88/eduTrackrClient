@@ -10,7 +10,7 @@ import { ChatSidebar } from './ChatSidebar';
 import { ChatWindow } from './ChatWindow';
 import { ChatListItem, ChatMessage } from '../../../types/features/chat';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3003';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000';
 
 const ChatStudent: React.FC = () => {
   const navigate = useNavigate();
@@ -322,13 +322,14 @@ const ChatStudent: React.FC = () => {
         }}
         loading={loading}
         error={error || undefined}
-        teachers={teachers}
+        directory={teachers}
         initiateChat={initiateChat}
-        switchToTeacher={switchToTeacher}
+        onSwitch={switchToTeacher}
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         socketConnected={socketConnected}
-        currentStudentDeptId={departmentId || ''}
+        currentDeptId={departmentId || ''}
+        userRole="Student"
       />
       
       <main className="flex-1 flex flex-col relative bg-gray-50/30">
@@ -348,8 +349,9 @@ const ChatStudent: React.FC = () => {
           onTyping={handleTyping}
           onDelete={handleDeleteMessage}
           onReact={handleAddReaction}
-          activeTeacher={activeTeacher || undefined}
+          activeContact={activeTeacher || undefined}
           currentUserId={userId}
+          userRole="Student"
         />
       </main>
 

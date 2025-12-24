@@ -10,7 +10,7 @@ import { ChatSidebar } from '../../common/chat/ChatSidebar';
 import { ChatWindow } from '../../common/chat/ChatWindow';
 import { ChatListItem, ChatMessage } from '../../../types/features/chat';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3003';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_APP_BASE_URL || 'http://localhost:3000';
 
 const ChatStudent: React.FC = () => {
   const navigate = useNavigate();
