@@ -16,6 +16,10 @@ interface Submission {
   grade?: number;
   feedback?: string;
   attachments?: Attachment[];
+  submissionContent?: {
+    text?: string;
+    files: string[] | any[];
+  };
 }
 
 interface Teacher {
@@ -259,16 +263,16 @@ const AssignmentDetailModal: React.FC<AssignmentDetailModalProps> = ({
                           <div>
                              <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Content</h5>
                              <p className="text-sm text-gray-700 leading-relaxed">
-                               {submission.submissionContent.text}
+                               {submission.submissionContent?.text}
                              </p>
                           </div>
                         )}
 
-                        {submission.submissionContent?.files?.length > 0 && (
+                        {(submission.submissionContent?.files?.length ?? 0) > 0 && (
                           <div>
                             <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Attached Files</h5>
                             <div className="flex flex-wrap gap-2">
-                              {submission.submissionContent.files.map((file: any, idx: number) => (
+                              {submission.submissionContent?.files?.map((file: any, idx: number) => (
                                 <a 
                                   key={idx} 
                                   href={typeof file === 'string' ? file : file.url} 

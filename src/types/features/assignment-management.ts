@@ -40,6 +40,10 @@ export interface Submission extends BaseEntity {
   feedback?: string;
   attachments: Attachment[];
   submissionText?: string;
+  submissionContent?: {
+    text?: string;
+    files: string[] | any[];
+  };
   status: SubmissionStatus;
 }
 
