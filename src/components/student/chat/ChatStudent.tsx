@@ -75,12 +75,18 @@ const ChatStudent: React.FC = () => {
         }));
       }
       
-      // Update chat list last message
-      setChatList(prev => prev.map(chat => 
-        chat.chatId === newMessage.chatId 
-          ? { ...chat, lastMessage: newMessage.message || 'Media', timestamp: newMessage.timestamp }
-          : chat
-      ));
+      // Update chat list last message and re-sort
+      setChatList(prev => {
+        const updated = prev.map(chat => 
+          chat.chatId === newMessage.chatId 
+            ? { ...chat, lastMessage: newMessage.message || 'Media', timestamp: newMessage.timestamp }
+            : chat
+        );
+        // Important: Re-sort to move the most recent chat to the top
+        return [...updated].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      });
     });
 
     socketRef.current.on('typing', (data: { chatId: string; isTyping: boolean }) => {
@@ -251,6 +257,18 @@ const ChatStudent: React.FC = () => {
         const res = await chatApi.sendHttpMessage(formData);
         setMessages(prev => [...prev, (res.data as any).data]);
       }
+
+      // Update chat list last message and re-sort on send
+      setChatList(prev => {
+        const updated = prev.map(chat => 
+          chat.chatId === activeChatId 
+            ? { ...chat, lastMessage: messageToSend.trim() || 'Media', timestamp: messageData.timestamp }
+            : chat
+        );
+        return [...updated].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      });
 
       setMessage('');
     } catch (err) {

@@ -16,7 +16,13 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   message, file, isUploading, uploadProgress,
   onMessageChange, onFileChange, onSend, onTyping
 }) => (
-  <div className="bg-white border-t border-gray-200 px-6 py-4">
+  <form 
+    className="bg-white border-t border-gray-200 px-6 py-4"
+    onSubmit={(e) => {
+      e.preventDefault();
+      onSend();
+    }}
+  >
     <div className="flex items-end space-x-3">
       <label htmlFor="file-upload" className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full cursor-pointer">
         <Paperclip className="w-5 h-5" />
@@ -32,13 +38,20 @@ export const MessageInput: React.FC<MessageInputProps> = ({
       <textarea
         value={message}
         onChange={e => { onMessageChange(e.target.value); onTyping(); }}
-        onKeyPress={(e: KeyboardEvent) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), onSend())}
+        onKeyPress={(e: KeyboardEvent) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            onSend();
+          }
+        }}
         placeholder="Type a message..."
         className="flex-1 rounded-2xl border border-gray-300 px-4 py-3 resize-none focus:ring-2 focus:ring-blue-500"
         rows={1}
         disabled={isUploading}
       />
-      <button onClick={onSend} disabled={(!message.trim() && !file) || isUploading}
+      <button 
+        type="submit"
+        disabled={(!message.trim() && !file) || isUploading}
         className={`p-3 rounded-full transition ${
           (message.trim()||file)&&!isUploading
             ? 'bg-blue-600 text-white hover:bg-blue-700'
@@ -57,6 +70,6 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         <p className="text-xs text-gray-600 mt-1">Uploading: {uploadProgress}%</p>
       </div>
     )}
-  </div>
+  </form>
 );
 export default MessageInput;

@@ -9,11 +9,38 @@ const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSea
   const authState = useSelector((state: RootState) => state.auth);
   const accessToken = authState?.accessToken;
 
-  const filteredStudents = students.filter(student =>
-    (student.firstname + ' ' + student.lastname).toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.departmentName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [sortBy, setSortBy] = useState<'name' | 'grade'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [filterGrade, setFilterGrade] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = (student.firstname + ' ' + student.lastname).toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.departmentName?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesGrade = filterGrade === 'all' || String(student.class) === filterGrade;
+    
+    return matchesSearch && matchesGrade;
+  });
+
+  const sortedStudents = [...filteredStudents].sort((a, b) => {
+    if (sortBy === 'name') {
+      const nameA = (a.firstname + ' ' + a.lastname).toLowerCase();
+      const nameB = (b.firstname + ' ' + b.lastname).toLowerCase();
+      return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    } else {
+      const gradeA = parseInt(a.class) || 0;
+      const gradeB = parseInt(b.class) || 0;
+      return sortOrder === 'asc' ? gradeA - gradeB : gradeB - gradeA;
+    }
+  });
+
+  const totalPages = Math.ceil(sortedStudents.length / itemsPerPage);
+  const currentStudents = sortedStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const grades = Array.from(new Set(students.map(s => String(s.class)).filter(g => g !== 'undefined' && g !== 'null'))) as string[];
 
   const handleViewDetails = (studentId) => {
     setSelectedStudentId(studentId);
@@ -60,17 +87,51 @@ const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSea
               <p className="text-gray-500 font-medium tracking-tight mt-1">Managing {teacherDepartment || "Faculty"} roster.</p>
             </div>
             
-            <div className="relative group">
-               <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
-                  <MdSearch className="text-2xl text-gray-300" />
-               </div>
-               <input
-                 type="text"
-                 placeholder="Search name, email or department..."
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full md:w-96 pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[2rem] shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-gray-700 placeholder:text-gray-300"
-               />
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="relative group">
+                 <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none group-focus-within:text-blue-600 transition-colors">
+                    <MdSearch className="text-2xl text-gray-300" />
+                 </div>
+                 <input
+                   type="text"
+                   placeholder="Search students..."
+                   value={searchQuery}
+                   onChange={(e) => {
+                     setSearchQuery(e.target.value);
+                     setCurrentPage(1);
+                   }}
+                   className="w-full md:w-64 pl-14 pr-6 py-4 bg-white border border-gray-100 rounded-[2rem] shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-gray-700 placeholder:text-gray-300"
+                 />
+              </div>
+
+              <select
+                value={filterGrade}
+                onChange={(e) => {
+                  setFilterGrade(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="px-6 py-4 bg-white border border-gray-100 rounded-[2rem] shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-[10px] uppercase tracking-widest text-gray-400 outline-none cursor-pointer"
+              >
+                <option value="all">All Grades</option>
+                {grades.sort().map(g => (
+                  <option key={g} value={g}>Grade {g}</option>
+                ))}
+              </select>
+
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [newSort, newOrder] = e.target.value.split('-') as [any, any];
+                  setSortBy(newSort);
+                  setSortOrder(newOrder);
+                }}
+                className="px-6 py-4 bg-white border border-gray-100 rounded-[2rem] shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-bold text-[10px] uppercase tracking-widest text-gray-400 outline-none cursor-pointer"
+              >
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+                <option value="grade-asc">Grade (Low-High)</option>
+                <option value="grade-desc">Grade (High-Low)</option>
+              </select>
             </div>
           </div>
 
@@ -88,7 +149,7 @@ const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSea
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredStudents.map((student) => (
+                  {currentStudents.map((student) => (
                     <tr key={student._id} className="group hover:bg-gray-50/50 transition-colors">
                       <td className="px-8 py-6 whitespace-nowrap">
                         <div className="flex items-center gap-4">
@@ -133,7 +194,7 @@ const StudentList = ({ students, loading, teacherDepartment, searchQuery, setSea
                       </td>
                     </tr>
                   ))}
-                  {filteredStudents.length === 0 && (
+                  {currentStudents.length === 0 && (
                     <tr>
                       <td colSpan={5} className="px-8 py-20 text-center">
                          <div className="flex flex-col items-center opacity-30">

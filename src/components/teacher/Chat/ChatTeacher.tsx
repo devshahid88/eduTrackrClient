@@ -110,11 +110,17 @@ const ChatTeacher: FC = () => {
         }));
       }
       
-      setChatList(prev => prev.map(chat => 
-        chat.chatId === newMessage.chatId 
-          ? { ...chat, lastMessage: newMessage.message || 'Media Received', timestamp: newMessage.timestamp }
-          : chat
-      ));
+      setChatList(prev => {
+        const updated = prev.map(chat => 
+          chat.chatId === newMessage.chatId 
+            ? { ...chat, lastMessage: newMessage.message || 'Media Received', timestamp: newMessage.timestamp }
+            : chat
+        );
+        // Resort to move the most recent chat to the top
+        return [...updated].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      });
     });
 
     socket.on('messageDeleted', (deletedMessage: ChatMessage) => {
@@ -326,6 +332,19 @@ const ChatTeacher: FC = () => {
         });
         fetchMessages(activeChatId);
       }
+
+      // Update chat list last message and re-sort on send for teachers
+      setChatList(prev => {
+        const timestamp = new Date().toISOString();
+        const updated = prev.map(chat => 
+          chat.chatId === activeChatId 
+            ? { ...chat, lastMessage: messageText || 'Media Sent', timestamp }
+            : chat
+        );
+        return [...updated].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      });
     } catch (err: any) {
       toast.error('Failed to dispatch message');
     } finally {

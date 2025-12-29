@@ -107,8 +107,16 @@ const TeacherConcernPage: React.FC = () => {
     }
   };
 
+  const normalizeStatus = (status: string) => {
+    const s = (status || '').toLowerCase().trim();
+    if (['solved', 'resolved'].includes(s)) return 'solved';
+    if (['in_progress', 'in-progress', 'in progress', 'inprogress'].includes(s)) return 'in_progress';
+    return s;
+  };
+
   const getStatusLabel = (status: string) => {
-    switch (status) {
+    const normalized = normalizeStatus(status);
+    switch (normalized) {
       case 'pending': return 'Pending';
       case 'in_progress': return 'In Progress';
       case 'solved': return 'Solved';
@@ -116,6 +124,33 @@ const TeacherConcernPage: React.FC = () => {
       default: return status;
     }
   };
+
+  /* ---------------- SEARCH, SORT, FILTER, PAGINATION ---------------- */
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const filteredConcerns = concerns.filter(concern => {
+    const matchesSearch = concern.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      concern.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const normalizedStatus = normalizeStatus(concern.status);
+    const normalizedFilter = statusFilter.toLowerCase();
+    const matchesStatus = statusFilter === 'all' || normalizedStatus === normalizedFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const sortedConcerns = [...filteredConcerns].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const totalPages = Math.ceil(sortedConcerns.length / itemsPerPage);
+  const currentConcerns = sortedConcerns.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   /* ---------------- UI ---------------- */
 
@@ -127,6 +162,48 @@ const TeacherConcernPage: React.FC = () => {
         <div>
           <h1 className="text-4xl font-black text-gray-900 tracking-tight">Teacher Support Hub</h1>
           <p className="text-gray-500 font-medium mt-1">Submit pedagogical or administrative concerns.</p>
+        </div>
+
+        <div className="flex flex-wrap gap-4 items-center">
+            {/* Search */}
+            <div className="relative group">
+                <input
+                    type="text"
+                    placeholder="Search concerns..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                    className="w-full md:w-64 h-12 px-5 bg-white border border-gray-100 rounded-2xl shadow-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold text-gray-700 outline-none"
+                />
+            </div>
+
+            {/* Filter */}
+            <select
+                value={statusFilter}
+                onChange={(e) => {
+                    setStatusFilter(e.target.value);
+                    setCurrentPage(1);
+                }}
+                className="h-12 px-5 bg-white border border-gray-100 rounded-2xl shadow-sm focus:border-blue-500 transition-all font-bold text-[10px] uppercase tracking-widest text-gray-400 outline-none cursor-pointer"
+            >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="solved">Solved</option>
+                <option value="rejected">Rejected</option>
+            </select>
+
+            {/* Sort */}
+            <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="h-12 px-5 bg-white border border-gray-100 rounded-2xl shadow-sm focus:border-blue-500 transition-all font-bold text-[10px] uppercase tracking-widest text-gray-400 outline-none cursor-pointer"
+            >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+            </select>
         </div>
       </div>
 
@@ -191,14 +268,14 @@ const TeacherConcernPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="space-y-6">
-                    {concerns.map((concern) => {
+                    {currentConcerns.map((concern) => {
                         const styleMap: any = {
                             'solved': 'bg-emerald-50 border-emerald-100 text-emerald-600',
                             'pending': 'bg-amber-50 border-amber-100 text-amber-600',
                             'in_progress': 'bg-blue-50 border-blue-100 text-blue-600',
                             'rejected': 'bg-rose-50 border-rose-100 text-rose-600'
                         };
-                        const statusColor = styleMap[concern.status] || 'bg-gray-50 border-gray-100 text-gray-500';
+                        const statusColor = styleMap[normalizeStatus(concern.status)] || 'bg-gray-50 border-gray-100 text-gray-500';
 
                         return (
                             <div key={concern._id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm p-8 flex flex-col gap-6 hover:shadow-md transition-all group">
@@ -239,6 +316,39 @@ const TeacherConcernPage: React.FC = () => {
                             </div>
                         );
                     })}
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 pt-8">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                disabled={currentPage === 1}
+                                className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 disabled:opacity-30 hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
+                            >
+                                ←
+                            </button>
+                            {Array.from({ length: totalPages }).map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentPage(i + 1)}
+                                    className={`w-10 h-10 rounded-xl text-[10px] font-black transition-all ${
+                                        currentPage === i + 1
+                                            ? 'bg-gray-900 text-white shadow-lg'
+                                            : 'bg-white text-gray-400 border border-gray-100 hover:border-gray-200'
+                                    }`}
+                                >
+                                    {i + 1}
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-3 bg-white border border-gray-100 rounded-xl text-gray-400 disabled:opacity-30 hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95 shadow-sm"
+                            >
+                                →
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

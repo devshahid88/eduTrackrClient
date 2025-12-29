@@ -98,24 +98,86 @@ const AdminAnnouncements: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  /* ---------------- SEARCH, SORT, FILTER, PAGINATION ---------------- */
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const filteredAnnouncements = announcements.filter(ann => {
+    const matchesSearch = ann.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ann.message.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === 'all' || ann.targetRoles.includes(roleFilter as any);
+    return matchesSearch && matchesRole;
+  });
+
+  const sortedAnnouncements = [...filteredAnnouncements].sort((a, b) => {
+    const dateA = new Date(a.createdAt).getTime();
+    const dateB = new Date(b.createdAt).getTime();
+    return sortBy === 'newest' ? dateB - dateA : dateA - dateB;
+  });
+
+  const totalPages = Math.ceil(sortedAnnouncements.length / itemsPerPage);
+  const currentAnnouncements = sortedAnnouncements.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Announcements</h1>
           <p className="text-sm text-gray-500">Broadcast messages to students, teachers, or admins</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-        >
-          <MdAdd className="w-5 h-5 mr-2" />
-          Make Announcement
-        </button>
+        
+        <div className="flex flex-wrap items-center gap-3">
+            <div className="relative group">
+                <input
+                    type="text"
+                    placeholder="Search announcements..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setCurrentPage(1);
+                    }}
+                    className="w-full md:w-64 px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm"
+                />
+            </div>
+
+            <select
+                value={roleFilter}
+                onChange={(e) => {
+                    setRoleFilter(e.target.value);
+                    setCurrentPage(1);
+                }}
+                className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+                <option value="all">All Roles</option>
+                <option value="Student">Students</option>
+                <option value="Teacher">Teachers</option>
+                <option value="Admin">Admins</option>
+            </select>
+
+            <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+            </select>
+
+            <button
+              onClick={() => openModal()}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm active:scale-95 text-sm"
+            >
+              <MdAdd className="w-5 h-5 mr-2" />
+              Make Announcement
+            </button>
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {announcements.map((announcement) => (
+        {currentAnnouncements.map((announcement) => (
           <div key={announcement._id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
             <div className="flex justify-between items-start">
               <div className="flex gap-4">
@@ -126,16 +188,16 @@ const AdminAnnouncements: React.FC = () => {
                   <h3 className="font-semibold text-gray-800 mb-1">{announcement.title}</h3>
                   <p className="text-gray-600 text-sm mb-3 whitespace-pre-wrap">{announcement.message}</p>
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 text-[10px]">
                     {announcement.targetRoles.map(role => (
-                      <span key={role} className="inline-flex items-center px-2 py-1 bg-gray-100 rounded text-xs text-gray-500">
+                      <span key={role} className="inline-flex items-center px-2 py-1 bg-gray-50 rounded text-gray-500 border border-gray-100 italic">
                         {role === 'Student' && <MdSchool className="w-3 h-3 mr-1" />}
                         {role === 'Teacher' && <MdPeople className="w-3 h-3 mr-1" />}
                         {role === 'Admin' && <MdAdminPanelSettings className="w-3 h-3 mr-1" />}
                         {role}
                       </span>
                     ))}
-                    <span className="text-xs text-gray-400 self-center ml-2">
+                    <span className="text-gray-400 self-center ml-2">
                       {new Date(announcement.createdAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -159,7 +221,47 @@ const AdminAnnouncements: React.FC = () => {
             </div>
           </div>
         ))}
+        {currentAnnouncements.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-200">
+            <p className="text-gray-400 text-sm">No announcements found matching your criteria.</p>
+          </div>
+        )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 py-4">
+          <button
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition"
+          >
+            Previous
+          </button>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i + 1)}
+                className={`w-8 h-8 rounded-lg text-xs font-semibold transition ${
+                  currentPage === i + 1
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                }`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 disabled:opacity-30 hover:bg-gray-50 transition"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (
