@@ -23,7 +23,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
   const { validateToken } = useTokenValidation();
   const { getRedirectPath, getLoginPath } = useAuthRedirect();
 

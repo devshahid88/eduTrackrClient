@@ -128,10 +128,7 @@ const App: React.FC = () => {
             <Route path="/admin/schedule" element={<AdminSchedule />} />
             <Route path="/admin/concerns" element={<AdminConcernPage />} />
             <Route path="/admin/resources" element={<AdminResources />} />
-            <Route
-              path="/admin/announcements"
-              element={<AdminAnnouncements />}
-            />
+            <Route path="/admin/announcements" element={<AdminAnnouncements />}/>
           </Route>
         </Route>
 
