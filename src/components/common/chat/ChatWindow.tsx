@@ -17,6 +17,9 @@ interface ChatWindowProps {
   onTyping: () => void;
   onDelete: (messageId: string) => void;
   onReact:  (msgId: string, emoji: string) => void;
+  onReply?: (message: ChatMessage) => void;
+  replyingTo: ChatMessage | null;
+  onCancelReply: () => void;
   activeContact?: { id: string; name: string };
   currentUserId: string;
   userRole: 'Student' | 'Teacher';
@@ -35,6 +38,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onTyping,
   onDelete, 
   onReact,
+  onReply,
+  replyingTo,
+  onCancelReply,
   activeContact,
   currentUserId,
   userRole
@@ -123,6 +129,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 isOwn={String(msg.sender) === currentUserId}
                 onDelete={onDelete}
                 onReact={onReact}
+                onReply={onReply}
               />
             ))}
             
@@ -152,6 +159,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
           onFileChange={onFileChange}
           onSend={onSend}
           onTyping={onTyping}
+          replyingTo={replyingTo}
+          onCancelReply={onCancelReply}
         />
       </div>
     </div>

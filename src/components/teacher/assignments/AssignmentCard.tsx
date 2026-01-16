@@ -152,7 +152,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({ assignment, onUpdate, o
       {/* Footer Actions */}
       <div className="px-8 py-6 bg-gray-50/50 border-t border-gray-50 flex items-center justify-between">
         <Link 
-          to={`/teacher/assignments/${assignment._id}`}
+          to={`/teacher/assignments/${assignment._id || assignment.id || ''}`}
           className="flex items-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg active:scale-95"
         >
           Evaluate Results

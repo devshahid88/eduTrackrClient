@@ -42,23 +42,23 @@ export const getScheduleDetails = (
   departments: Department[]
 ): ScheduleDetails => {
   const course = typeof schedule.courseId === 'string'
-    ? courses.find(c => c._id === schedule.courseId)
+    ? courses?.find(c => c._id === schedule.courseId)
     : schedule.courseId;
     
   const teacher = typeof schedule.teacherId === 'string'
-    ? teachers.find(t => t._id === schedule.teacherId)
+    ? teachers?.find(t => t._id === schedule.teacherId)
     : schedule.teacherId;
     
   const department = typeof schedule.departmentId === 'string'
-    ? departments.find(d => d._id === schedule.departmentId)
+    ? departments?.find(d => d._id === schedule.departmentId)
     : schedule.departmentId;
 
   return {
-    courseCode: course?.code || 'N/A',
-    courseName: course?.name || 'Unknown Course',
-    teacherName: teacher ? `${teacher.firstname} ${teacher.lastname}` : 'TBA',
-    departmentName: department?.name || 'Unknown Dept',
-    semester: course?.semester || 'N/A',
+    courseCode: schedule.courseCode || course?.code || 'N/A',
+    courseName: schedule.courseName || course?.name || 'Unknown Course',
+    teacherName: schedule.teacherName || (teacher ? `${teacher.firstname} ${teacher.lastname}` : teacher?.username ? teacher.username : 'TBA'),
+    departmentName: schedule.departmentName || department?.name || 'Unknown Dept',
+    semester: schedule.semester || course?.semester || 'N/A',
     timeRange: `${schedule.startTime} - ${schedule.endTime}`
   };
 };

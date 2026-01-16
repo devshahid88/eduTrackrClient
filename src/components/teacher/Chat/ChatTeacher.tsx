@@ -41,6 +41,7 @@ const ChatTeacher: FC = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
 
   let typingTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -123,6 +124,17 @@ const ChatTeacher: FC = () => {
       });
     });
 
+    socket.on('newChat', ({ chatId, contact, contactModel }: any) => {
+        fetchChatList();
+        if (contactModel === 'Student') {
+          setActiveChatId(chatId);
+          setActiveStudent({
+            id: contact,
+            name: students.find((s) => (s._id || s.id) === contact)?.name || 'Student',
+          });
+        }
+    });
+
     socket.on('messageDeleted', (deletedMessage: ChatMessage) => {
       if (deletedMessage.chatId === activeChatId) {
         const messageId = deletedMessage._id || deletedMessage.id;
@@ -131,17 +143,21 @@ const ChatTeacher: FC = () => {
       fetchChatList();
     });
 
-    socket.on('newChat', ({ chatId, contact, contactModel }: any) => {
-        fetchChatList();
-        if (contactModel === 'Student') {
-          setActiveChatId(chatId);
-          setActiveStudent({
-            id: contact,
-            name: students.find((s) => s._id === contact)?.name || 'Student',
-          });
+    socket.on('reactionAdded', (data: { messageId: string; reaction: string; userId: string; chatId: string }) => {
+      setMessages(prev => prev.map(m => {
+        if ((m._id || m.id) === data.messageId) {
+          const reactions = m.reactions || [];
+          const existingIndex = reactions.findIndex(r => r.userId === data.userId);
+          if (existingIndex > -1) {
+              const newReactions = [...reactions];
+              newReactions[existingIndex] = { ...newReactions[existingIndex], reaction: data.reaction };
+              return { ...m, reactions: newReactions };
+          }
+          return { ...m, reactions: [...reactions, { reaction: data.reaction, userId: data.userId }] };
         }
-      }
-    );
+        return m;
+      }));
+    });
 
     socket.on('typing', ({ userId: typingUserId, isTyping: isUserTyping, chatId }: any) => {
         if (String(typingUserId) !== userId && chatId === activeChatId) {
@@ -157,7 +173,13 @@ const ChatTeacher: FC = () => {
         socket = null;
       }
     };
-  }, [userId, accessToken, activeChatId, students]);
+  }, [userId, accessToken]); // Removed activeChatId to prevent reconnections
+
+  useEffect(() => {
+    if (activeChatId && socket && socketConnected) {
+        socket.emit('join', { chatId: activeChatId });
+    }
+  }, [activeChatId, socketConnected]);
 
   const fetchStudentsInDepartment = async () => {
     if (!userId || !accessToken || !teacherDepartmentId) return;
@@ -260,7 +282,9 @@ const ChatTeacher: FC = () => {
     setActiveChatId(chatId);
     setActiveStudent(student);
     markMessagesAsRead(chatId);
+    setReplyingTo(null);
   };
+
 
   const handleTyping = () => {
     if (!isTyping && activeChatId && socketConnected) {
@@ -277,17 +301,37 @@ const ChatTeacher: FC = () => {
   const handleAddReaction = async (messageId: string, reaction: string) => {
     try {
       if (socketConnected && socket) {
-        socket.emit('addReaction', { messageId, reaction, userId, senderModel: 'Teacher' });
+        socket.emit('addReaction', { messageId, reaction, userId, senderModel: 'Teacher', chatId: activeChatId });
       } else {
         await axios.post(`${API_URL}/messages/reaction`, 
-          { messageId, sender: userId, reaction, senderModel: 'Teacher' },
+          { messageId, userId, reaction, senderModel: 'Teacher' },
           { headers: { Authorization: `Bearer ${accessToken}` } }
         );
+        // Local state update for offline mode
+        setMessages(prev => prev.map(m => {
+            if ((m._id || m.id) === messageId) {
+                const reactions = m.reactions || [];
+                const existingIndex = reactions.findIndex(r => r.userId === userId);
+                if (existingIndex > -1) {
+                    const newReactions = [...reactions];
+                    newReactions[existingIndex] = { ...newReactions[existingIndex], reaction };
+                    return { ...m, reactions: newReactions };
+                }
+                return { ...m, reactions: [...reactions, { reaction, userId }] };
+            }
+            return m;
+        }));
       }
     } catch (err: any) {
       console.error('Reaction error:', err);
+      toast.error('Failed to add reaction');
     }
   };
+
+  const handleReply = (msg: ChatMessage) => {
+    setReplyingTo(msg);
+  };
+
 
   const handleSendMessage = async () => {
     if (!activeChatId || !activeStudent || !accessToken || (!message.trim() && !file)) return;
@@ -297,27 +341,53 @@ const ChatTeacher: FC = () => {
     try {
       if (socketConnected && socket) {
         if (file) {
+          setIsUploading(true);
           const formData = new FormData();
           formData.append('media', file);
-          setIsUploading(true);
+          
           const uploadRes = await axios.post(`${API_URL}/messages/upload`, formData, {
             headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'multipart/form-data' },
             onUploadProgress: (e) => setUploadProgress(Math.round((e.loaded * 100) / (e.total || 1)))
           });
-          if (uploadRes.data?.data?.url) {
-            socket.emit('sendMedia', {
-              chatId: activeChatId, sender: userId, senderModel: 'Teacher',
-              receiver: activeStudent.id, receiverModel: 'Student',
-              message: messageText, mediaUrl: uploadRes.data.data.url,
-              mediaType: file.type.startsWith('image/') ? 'image' : 'document'
-            });
+
+          if (!uploadRes.data?.success || !uploadRes.data?.data?.url) {
+            throw new Error(uploadRes.data?.message || 'Media upload failed');
           }
+
+          const mediaUrl = uploadRes.data.data.url;
+          const mediaType = file.type.startsWith('image/') ? 'image' : file.type.startsWith('video/') ? 'video' : 'document';
+          
+          socket.emit('sendMessage', {
+            chatId: activeChatId,
+            receiver: activeStudent.id,
+            receiverModel: 'Student',
+            message: messageText,
+            mediaUrl,
+            mediaType,
+            replyTo: replyingTo ? replyingTo._id || replyingTo.id : undefined
+          });
         } else {
           socket.emit('sendMessage', {
-            chatId: activeChatId, sender: userId, senderModel: 'Teacher',
-            receiver: activeStudent.id, receiverModel: 'Student', message: messageText
+            chatId: activeChatId,
+            receiver: activeStudent.id,
+            receiverModel: 'Student',
+            message: messageText,
+            replyTo: replyingTo ? replyingTo._id || replyingTo.id : undefined
           });
         }
+
+        // Optimistic update for teacher
+        const tempMsg: any = {
+          _id: `temp-${Date.now()}`,
+          chatId: activeChatId,
+          sender: userId,
+          senderModel: 'Teacher',
+          receiver: activeStudent.id,
+          receiverModel: 'Student',
+          message: messageText,
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, tempMsg]);
       } else {
         const formData = new FormData();
         formData.append('chatId', activeChatId);
@@ -327,12 +397,16 @@ const ChatTeacher: FC = () => {
         formData.append('receiverModel', 'Student');
         if (messageText) formData.append('message', messageText);
         if (file) formData.append('media', file);
+        if (replyingTo) formData.append('replyTo', replyingTo._id || replyingTo.id || '');
         await axios.post(`${API_URL}/messages/send`, formData, {
           headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'multipart/form-data' }
         });
         fetchMessages(activeChatId);
       }
-
+      
+      setMessage('');
+      setReplyingTo(null);
+      setFile(null);
       // Update chat list last message and re-sort on send for teachers
       setChatList(prev => {
         const timestamp = new Date().toISOString();
@@ -346,7 +420,9 @@ const ChatTeacher: FC = () => {
         );
       });
     } catch (err: any) {
-      toast.error('Failed to dispatch message');
+      console.error('Failed to dispatch message:', err);
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to dispatch message';
+      toast.error(errorMsg);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -405,6 +481,9 @@ const ChatTeacher: FC = () => {
             onTyping={handleTyping}
             onDelete={handleDeleteMessage}
             onReact={handleAddReaction}
+            onReply={handleReply}
+            replyingTo={replyingTo}
+            onCancelReply={() => setReplyingTo(null)}
             activeContact={activeStudent || undefined}
             currentUserId={userId}
             userRole="Teacher"

@@ -39,7 +39,8 @@ interface Assignment {
   submissions?: Submission[];
   courseName?: string;
   departmentName?: string;
-  teacherId?: Teacher;
+  teacherId?: Teacher | string;
+  teacherName?: string;
   submissionFormat?: string;
   attachments?: Attachment[];
   allowLateSubmission?: boolean;
@@ -211,11 +212,20 @@ const AssignmentDetailModal: React.FC<AssignmentDetailModalProps> = ({
                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Teacher</h4>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                            {(assignment.teacherId?.name || assignment.teacherId?.username || 'U')[0].toUpperCase()}
+                             {(() => {
+                                const tName = assignment.teacherName || 
+                                              (typeof assignment.teacherId === 'object' ? (assignment.teacherId?.name || assignment.teacherId?.username) : '') || 
+                                              'U';
+                                return tName[0].toUpperCase();
+                             })()}
                           </div>
                           <div className="text-sm">
                             <p className="font-bold text-gray-900">
-                              {assignment.teacherId?.name || assignment.teacherId?.username || 'Unknown Teacher'}
+                               {(() => {
+                                  return assignment.teacherName || 
+                                         (typeof assignment.teacherId === 'object' ? (assignment.teacherId?.name || assignment.teacherId?.username) : '') || 
+                                         'Unknown Teacher';
+                               })()}
                             </p>
                             <p className="text-gray-500 text-xs">Lead Instructor</p>
                           </div>

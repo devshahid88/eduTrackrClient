@@ -1,5 +1,6 @@
 import React, { ChangeEvent, KeyboardEvent } from 'react';
 import { Send, Paperclip, Smile } from 'lucide-react';
+import { ChatMessage } from '../../../types/features/chat';
 
 interface MessageInputProps {
   message: string;
@@ -10,19 +11,40 @@ interface MessageInputProps {
   onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onSend: () => void;
   onTyping: () => void;
+  replyingTo: ChatMessage | null;
+  onCancelReply: () => void;
 }
 
 export const MessageInput: React.FC<MessageInputProps> = ({
   message, file, isUploading, uploadProgress,
-  onMessageChange, onFileChange, onSend, onTyping
+  onMessageChange, onFileChange, onSend, onTyping,
+  replyingTo, onCancelReply
 }) => (
-  <form 
-    className="bg-white border-t border-gray-200 px-6 py-4"
-    onSubmit={(e) => {
-      e.preventDefault();
-      onSend();
-    }}
-  >
+  <div className="bg-white border-t border-gray-200">
+    {replyingTo && (
+      <div className="px-6 py-2 bg-gray-50 flex items-center justify-between animate-in slide-in-from-bottom-2">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-1 h-8 bg-blue-500 rounded-full" />
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-blue-600">Replying to message</p>
+            <p className="text-xs text-gray-500 truncate">{replyingTo.message}</p>
+          </div>
+        </div>
+        <button 
+          onClick={onCancelReply}
+          className="p-1.5 hover:bg-gray-200 rounded-full transition-colors"
+        >
+          <Smile className="w-4 h-4 text-gray-400 rotate-45" /> {/* Using Smile rotated as a close icon skip for now if X not avail */}
+        </button>
+      </div>
+    )}
+    <form 
+      className="px-6 py-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSend();
+      }}
+    >
     <div className="flex items-end space-x-3">
       <label htmlFor="file-upload" className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full cursor-pointer">
         <Paperclip className="w-5 h-5" />
@@ -70,6 +92,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
         <p className="text-xs text-gray-600 mt-1">Uploading: {uploadProgress}%</p>
       </div>
     )}
-  </form>
+    </form>
+  </div>
 );
 export default MessageInput;

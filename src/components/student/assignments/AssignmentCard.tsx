@@ -20,7 +20,7 @@ const AssignmentCard: React.FC<AssignmentCardProps> = ({
   const dueDate = new Date(assignment.dueDate);
   const assignmentStatus = getAssignmentStatus(assignment);
   const timeRemainingText = formatTimeRemaining(assignment);
-  const teacherName = getTeacherDisplayName(assignment.teacherId);
+  const teacherName = assignment.teacherName || getTeacherDisplayName(assignment.teacherId);
   const submissionConfig = getSubmissionButtonConfig(assignment);
   
   // Status badge component

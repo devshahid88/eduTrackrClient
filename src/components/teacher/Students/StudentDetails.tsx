@@ -49,13 +49,16 @@ const StudentDetails = ({ studentId, accessToken }) => {
               const schedules = schedulesResponse.data.data;
               const uniqueCourses: any = [];
               schedules.forEach((schedule) => {
-                if (schedule.courseId?._id && !courseIds.has(schedule.courseId._id)) {
-                  courseIds.add(schedule.courseId._id);
+                // Handle both populated (legacy) and flattened (clean arch) structures
+                const cId = schedule.courseId?._id || schedule.courseId;
+                
+                if (cId && typeof cId === 'string' && !courseIds.has(cId)) {
+                  courseIds.add(cId);
                   uniqueCourses.push({
-                    _id: schedule.courseId._id,
-                    code: schedule.courseId.code,
-                    name: schedule.courseId.name || 'Unknown Course',
-                    teacher: schedule.teacherId?.username || 'TBA',
+                    _id: cId,
+                    code: schedule.courseCode || schedule.courseId?.code || 'N/A',
+                    name: schedule.courseName || schedule.courseId?.name || 'Unknown Course',
+                    teacher: schedule.teacherName || schedule.teacherId?.username || 'TBA',
                     time: `${schedule.startTime} - ${schedule.endTime}`,
                     room: schedule.room,
                   });

@@ -155,10 +155,10 @@ const StudentClassesPage: React.FC = () => {
                             <div className="flex justify-between items-start mb-6">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">
-                                        {schedule.courseId?.code || 'CRS-101'}
+                                        {schedule.courseCode || schedule.courseId?.code || 'CRS-101'}
                                     </span>
                                     <h3 className="text-xl font-black text-gray-800 tracking-tight leading-none group-hover:text-blue-600 transition-colors">
-                                        {schedule.courseId?.name || 'Unknown Class'}
+                                        {schedule.courseName || schedule.courseId?.name || 'Unknown Class'}
                                     </h3>
                                 </div>
                                 {active && (
@@ -178,7 +178,7 @@ const StudentClassesPage: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-3 text-gray-400">
                                     <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center text-xs">👤</div>
-                                    <span className="text-xs font-medium uppercase tracking-widest italic">{schedule.teacherId?.name || 'TBA'}</span>
+                                    <span className="text-xs font-medium uppercase tracking-widest italic">{schedule.teacherName || schedule.teacherId?.name || 'TBA'}</span>
                                 </div>
                             </div>
 

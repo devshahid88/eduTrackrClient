@@ -35,6 +35,7 @@ const ChatStudent: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
 
   const socketRef = useRef<any>(null);
   const typingTimeoutRef = useRef<any>(null);
@@ -104,23 +105,36 @@ const ChatStudent: React.FC = () => {
     });
 
     socketRef.current.on('reactionAdded', (data: { messageId: string; reaction: string; userId: string; chatId: string }) => {
-      if (data.chatId === activeChatId) {
-        setMessages(prev => prev.map(m => {
-          if ((m._id || m.id) === data.messageId) {
-            const reactions = m.reactions || [];
-            return { ...m, reactions: [...reactions, { reaction: data.reaction, userId: data.userId }] };
+      console.log('Reaction received:', data);
+      setMessages(prev => prev.map(m => {
+        if ((m._id || m.id) === data.messageId) {
+          const reactions = m.reactions || [];
+          const existingIndex = reactions.findIndex(r => r.userId === data.userId);
+          if (existingIndex > -1) {
+              const newReactions = [...reactions];
+              newReactions[existingIndex] = { ...newReactions[existingIndex], reaction: data.reaction };
+              return { ...m, reactions: newReactions };
           }
-          return m;
-        }));
-      }
+          return { ...m, reactions: [...reactions, { reaction: data.reaction, userId: data.userId }] };
+        }
+        return m;
+      }));
     });
 
     return () => {
       if (socketRef.current) {
         socketRef.current.disconnect();
+        socketRef.current = null;
       }
     };
-  }, [userId, accessToken, activeChatId]);
+  }, [userId, accessToken]); // Removed activeChatId to prevent reconnections on chat switch
+
+  // Join chat room when activeChatId changes
+  useEffect(() => {
+    if (activeChatId && socketRef.current && socketConnected) {
+      socketRef.current.emit('join', { chatId: activeChatId });
+    }
+  }, [activeChatId, socketConnected]);
 
   // Initial Data Load
   useEffect(() => {
@@ -226,15 +240,25 @@ const ChatStudent: React.FC = () => {
         setIsUploading(true);
         const formData = new FormData();
         formData.append('media', fileToSend);
+        
+        console.log('[ChatStudent] Starting media upload for:', fileToSend.name);
         const uploadRes = await chatApi.uploadMedia(formData, (pct) => setUploadProgress(pct));
 
+        if (!uploadRes.data?.success || !uploadRes.data?.data?.url) {
+          console.error('[ChatStudent] Media upload failed. Response:', uploadRes.data);
+          throw new Error(uploadRes.data?.message || 'Media upload failed');
+        }
+
         mediaUrl = uploadRes.data.data.url;
+        console.log('[ChatStudent] Media upload successful. URL:', mediaUrl);
         setIsUploading(false);
         setFile(null);
         setUploadProgress(0);
       }
 
-      const messageId = Math.random().toString(36).substring(7); // Temporary ID for optimistic update
+      const messageId = `temp-${Date.now()}`; 
+      const mediaType = fileToSend ? (fileToSend.type.startsWith('image/') ? 'image' : fileToSend.type.startsWith('video/') ? 'video' : 'document') : undefined;
+      
       const messageData = {
         _id: messageId,
         chatId: activeChatId,
@@ -243,19 +267,29 @@ const ChatStudent: React.FC = () => {
         receiver: activeTeacher.id,
         receiverModel: 'Teacher',
         message: messageToSend.trim(),
-        mediaUrl,
+        mediaUrl: mediaUrl || undefined,
+        mediaType,
+        replyTo: replyingTo ? (replyingTo._id || replyingTo.id) : undefined,
         timestamp: new Date().toISOString()
       };
 
       if (socketConnected) {
+        console.log('[ChatStudent] Emitting sendMessage via socket:', messageData);
         socketRef.current.emit('sendMessage', messageData);
-        // Optimistic update
         setMessages(prev => [...prev, messageData as ChatMessage]);
       } else {
         const formData = new FormData();
-        Object.entries(messageData).forEach(([key, val]) => formData.append(key, val as any));
+        Object.entries(messageData).forEach(([key, val]) => {
+          if (val !== undefined && val !== null) {
+            formData.append(key, val as any);
+          }
+        });
         const res = await chatApi.sendHttpMessage(formData);
-        setMessages(prev => [...prev, (res.data as any).data]);
+        const savedMsg = (res.data as any).data;
+        setMessages(prev => [...prev, savedMsg]);
+
+        // Replace optimistic message if needed or just let it be (handling duplicate IDs is better)
+        // But for simplicity, we just added it.
       }
 
       // Update chat list last message and re-sort on send
@@ -271,9 +305,11 @@ const ChatStudent: React.FC = () => {
       });
 
       setMessage('');
-    } catch (err) {
+      setReplyingTo(null);
+    } catch (err: any) {
       console.error('Failed to send message:', err);
-      toast.error('Failed to send message');
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to send message';
+      toast.error(errorMsg);
       setIsUploading(false);
     }
   };
@@ -290,21 +326,54 @@ const ChatStudent: React.FC = () => {
     }, 2000);
   };
 
-  const handleDeleteMessage = (messageId: string) => {
-    if (!socketConnected) {
-      toast.error('Cannot delete message in offline mode');
-      return;
+  const handleDeleteMessage = async (messageId: string) => {
+    if (socketConnected && socketRef.current) {
+        socketRef.current.emit('deleteMessage', { messageId, chatId: activeChatId, userId });
+    } else {
+        try {
+            await chatApi.deleteMessage(messageId, userId);
+            setMessages(prev => prev.map(m => 
+                (m._id || m.id) === messageId ? { ...m, isDeleted: true } : m
+            ));
+            toast.success('Message deleted');
+        } catch (err) {
+            console.error('Failed to delete message via HTTP:', err);
+            toast.error('Failed to delete message');
+        }
     }
-    socketRef.current.emit('deleteMessage', { messageId, chatId: activeChatId, userId });
   };
 
-  const handleAddReaction = (messageId: string, reaction: string) => {
-    if (!socketConnected) {
-      toast.error('Cannot add reaction in offline mode');
-      return;
+  const handleAddReaction = async (messageId: string, reaction: string) => {
+    if (socketConnected && socketRef.current) {
+        socketRef.current.emit('addReaction', { messageId, chatId: activeChatId, reaction, userId });
+    } else {
+        try {
+            await chatApi.addReaction({ messageId, userId, reaction });
+            // Update local state since we won't get a socket event
+            setMessages(prev => prev.map(m => {
+                if ((m._id || m.id) === messageId) {
+                    const reactions = m.reactions || [];
+                    const existingIndex = reactions.findIndex(r => r.userId === userId);
+                    if (existingIndex > -1) {
+                        const newReactions = [...reactions];
+                        newReactions[existingIndex] = { ...newReactions[existingIndex], reaction };
+                        return { ...m, reactions: newReactions };
+                    }
+                    return { ...m, reactions: [...reactions, { reaction, userId }] };
+                }
+                return m;
+            }));
+        } catch (err) {
+            console.error('Failed to add reaction via HTTP:', err);
+            toast.error('Failed to add reaction');
+        }
     }
-    socketRef.current.emit('addReaction', { messageId, chatId: activeChatId, reaction, userId });
   };
+
+  const handleReply = (msg: ChatMessage) => {
+    setReplyingTo(msg);
+  };
+
 
   if (!userId || !accessToken) {
     return (
@@ -367,6 +436,9 @@ const ChatStudent: React.FC = () => {
           onTyping={handleTyping}
           onDelete={handleDeleteMessage}
           onReact={handleAddReaction}
+          onReply={handleReply}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
           activeContact={activeTeacher || undefined}
           currentUserId={userId}
           userRole="Student"

@@ -13,6 +13,10 @@ export interface Schedule extends BaseEntity {
   isLive?: boolean;
   createdAt: string;
   updatedAt: string;
+  courseName?: string;
+  courseCode?: string;
+  teacherName?: string;
+  departmentName?: string;
 }
 
 // Related Entity Types

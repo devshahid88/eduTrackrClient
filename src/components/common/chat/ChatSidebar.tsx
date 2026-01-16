@@ -115,7 +115,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                       <div
                         key={chat.chatId}
                         onClick={() => onSwitch(chat.chatId, {
-                          id: chat.contact._id,
+                          id: chat.contact._id || (chat.contact as any).id,
                           name: chat.contact.username
                         })}
                         className={`group p-3 rounded-2xl cursor-pointer transition-all duration-200 ${

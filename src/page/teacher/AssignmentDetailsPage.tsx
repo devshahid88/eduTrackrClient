@@ -33,8 +33,9 @@ const AssignmentDetailsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchAssignment = async () => {
-      if (!teacherId || !accessToken || !assignmentId) {
-        toast.error("Authentication error");
+      if (!teacherId || !accessToken || !assignmentId || assignmentId === 'undefined') {
+        toast.error("Invalid Assignment ID");
+        navigate("/teacher/assignments");
         return;
       }
 

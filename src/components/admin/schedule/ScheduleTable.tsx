@@ -99,22 +99,23 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({
   const getScheduleDisplayValue = (schedule: any, field: string) => {
     switch (field) {
       case 'course':
-        return typeof schedule.courseId === 'string' 
-          ? 'N/A' 
-          : schedule.courseId?.name || 'N/A';
+      case 'course':
+        return schedule.courseName || schedule.courseCode || 
+               (typeof schedule.courseId !== 'string' ? schedule.courseId?.name : 'N/A');
       case 'department':
-        return typeof schedule.departmentId === 'string'
-          ? departments.find(d => d._id === schedule.departmentId)?.name || 'N/A'
-          : schedule.departmentId?.name || 'N/A';
+        return schedule.departmentName ||
+               (typeof schedule.departmentId === 'string'
+                  ? departments.find(d => d._id === schedule.departmentId)?.name || 'N/A'
+                  : schedule.departmentId?.name || 'N/A');
       case 'teacher':
+        if (schedule.teacherName) return schedule.teacherName;
         if (typeof schedule.teacherId === 'string') return 'N/A';
         return schedule.teacherId?.firstname && schedule.teacherId?.lastname
           ? `${schedule.teacherId.firstname} ${schedule.teacherId.lastname}`
-          : 'N/A';
+          : schedule.teacherId?.username || 'N/A';
       case 'semester':
-        return typeof schedule.courseId === 'string'
-          ? 'N/A'
-          : schedule.courseId?.semester || 'N/A';
+         return schedule.semester || 
+                (typeof schedule.courseId !== 'string' ? schedule.courseId?.semester : 'N/A');
       case 'timeRange':
         return `${schedule.startTime} - ${schedule.endTime}`;
       default:
