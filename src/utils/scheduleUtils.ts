@@ -56,7 +56,7 @@ export const getScheduleDetails = (
   return {
     courseCode: schedule.courseCode || course?.code || 'N/A',
     courseName: schedule.courseName || course?.name || 'Unknown Course',
-    teacherName: schedule.teacherName || (teacher ? `${teacher.firstname} ${teacher.lastname}` : teacher?.username ? teacher.username : 'TBA'),
+    teacherName: schedule.teacherName || (teacher && typeof teacher === 'object' ? `${teacher.firstname} ${teacher.lastname}` : 'TBA'),
     departmentName: schedule.departmentName || department?.name || 'Unknown Dept',
     semester: schedule.semester || course?.semester || 'N/A',
     timeRange: `${schedule.startTime} - ${schedule.endTime}`

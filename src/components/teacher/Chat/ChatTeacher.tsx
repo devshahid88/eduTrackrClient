@@ -431,15 +431,20 @@ const ChatTeacher: FC = () => {
 
   const handleDeleteMessage = async (messageId: string) => {
     try {
-      if (socketConnected && socket) socket.emit('deleteMessage', { messageId });
+      if (socketConnected && socket) socket.emit('deleteMessage', { messageId, chatId: activeChatId, userId });
       else {
         await axios.post(`${API_URL}/messages/delete`, { messageId, userId }, { headers: { Authorization: `Bearer ${accessToken}` } });
-        setMessages(prev => prev.filter(m => (m._id || m.id) !== messageId));
+        setMessages(prev => prev.map(m => 
+            (m._id || m.id) === messageId ? { ...m, isDeleted: true } : m
+        ));
+        toast.success('Message deleted');
       }
     } catch (err: any) {
       console.error('Delete error:', err);
+      toast.error('Failed to delete message');
     }
   };
+
 
   return (
     <div className="flex h-[calc(100vh-80px)] container mx-auto px-4 py-6 animate-in fade-in slide-in-from-bottom-4 duration-700">

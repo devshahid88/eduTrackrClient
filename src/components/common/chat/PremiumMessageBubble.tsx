@@ -53,45 +53,54 @@ export const PremiumMessageBubble: React.FC<PremiumMessageBubbleProps> = ({
 
         {/* The Bubble */}
         <div className={`relative px-4 py-3 rounded-[24px] shadow-sm transition-all ${
+          message.isDeleted ? 'bg-gray-100 text-gray-400 italic' :
           isOwn 
             ? 'bg-blue-600 text-white rounded-tr-none shadow-blue-200/50' 
             : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'
           }`}>
           
-          {message.replyTo && (
-            <div className={`mb-2 p-2 rounded-xl text-[11px] border-l-3 backdrop-blur-sm ${
-                isOwn ? 'bg-white/10 border-white/40 text-white/90' : 'bg-gray-50 border-gray-300 text-gray-500'
-            }`}>
-               <p className="font-bold uppercase tracking-wider mb-0.5 opacity-60">Replying to message</p>
-               <p className="line-clamp-1">{typeof message.replyTo === 'object' ? (message.replyTo as any).message : 'Message reference unavailable'}</p>
-            </div>
-          )}
+          {message.isDeleted ? (
+            <p className="text-[13px] tracking-tight flex items-center gap-1.5 opacity-60">
+               🚫 This message was deleted
+            </p>
+          ) : (
+            <>
+            {message.replyTo && (
+              <div className={`mb-2 p-2 rounded-xl text-[11px] border-l-3 backdrop-blur-sm ${
+                  isOwn ? 'bg-white/10 border-white/40 text-white/90' : 'bg-gray-50 border-gray-300 text-gray-500'
+              }`}>
+                 <p className="font-bold uppercase tracking-wider mb-0.5 opacity-60">Replying to message</p>
+                 <p className="line-clamp-1">{typeof message.replyTo === 'object' ? (message.replyTo as any).message : 'Message reference unavailable'}</p>
+              </div>
+            )}
 
-          {message.mediaUrl && (
-            <div className="mb-2.5 overflow-hidden rounded-2xl bg-gray-100/10">
-              {message.mediaType === 'image' ? (
-                <img 
-                  src={message.mediaUrl} 
-                  alt="Attachment" 
-                  className="max-w-full h-auto object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in"
-                />
-              ) : (
-                <div className={`p-3 flex items-center gap-3 ${isOwn ? 'bg-white/10' : 'bg-gray-50'}`}>
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOwn ? 'bg-white/20' : 'bg-blue-100 text-blue-600'}`}>
-                    📄
+            {message.mediaUrl && (
+              <div className="mb-2.5 overflow-hidden rounded-2xl bg-gray-100/10">
+                {message.mediaType === 'image' ? (
+                  <img 
+                    src={message.mediaUrl} 
+                    alt="Attachment" 
+                    className="max-w-full h-auto object-cover hover:scale-105 transition-transform duration-500 cursor-zoom-in"
+                  />
+                ) : (
+                  <div className={`p-3 flex items-center gap-3 ${isOwn ? 'bg-white/10' : 'bg-gray-50'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isOwn ? 'bg-white/20' : 'bg-blue-100 text-blue-600'}`}>
+                      📄
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-bold truncate">File Attachment</p>
+                      <a href={message.mediaUrl} target="_blank" className={`text-[10px] font-black uppercase tracking-widest ${isOwn ? 'text-white' : 'text-blue-600 hover:underline'}`}>Download</a>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[11px] font-bold truncate">File Attachment</p>
-                    <a href={message.mediaUrl} target="_blank" className={`text-[10px] font-black uppercase tracking-widest ${isOwn ? 'text-white' : 'text-blue-600 hover:underline'}`}>Download</a>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
 
-          <p className="text-[14px] leading-relaxed font-medium">
-            {message.message}
-          </p>
+            <p className="text-[14px] leading-relaxed font-medium">
+              {message.message}
+            </p>
+            </>
+          )}
 
           <div className={`flex items-center gap-1.5 mt-2 opacity-60 ${isOwn ? 'justify-end' : 'justify-start'}`}>
             <span className="text-[9px] font-bold uppercase tracking-tighter">
